@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>台灣環島飛行棋 - 輕量版</title>
+    <title>台灣環島飛行棋</title>
     <style>
         :root {
             --primary: #2c3e50;
@@ -19,100 +19,97 @@
             align-items: center;
             background-color: #f0f2f5;
             margin: 0;
-            padding: 20px;
+            padding: 10px;
+            overflow-x: hidden;
         }
 
-        /* 遊戲說明彈窗 */
         #rule-modal {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8);
+            background: rgba(0,0,0,0.9);
             display: flex;
             justify-content: center;
             align-items: center;
-            z-index: 1000;
+            z-index: 2000;
         }
         .modal-content {
             background: white;
-            padding: 30px;
+            padding: 25px;
             border-radius: 15px;
-            max-width: 400px;
+            max-width: 320px;
             text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
         }
 
-        /* 棋盤佈局 */
         .game-container {
             position: relative;
-            width: 320px;
-            height: 480px;
             display: grid;
-            grid-template-columns: repeat(3, 100px);
-            grid-template-rows: repeat(5, 80px);
-            gap: 10px;
-            margin-top: 20px;
+            grid-template-columns: repeat(3, 90px);
+            grid-template-rows: repeat(5, 70px);
+            gap: 8px;
+            margin: 20px auto;
+            background: #ddd;
+            padding: 10px;
+            border-radius: 10px;
         }
 
         .cell {
             background: white;
-            border: 2px solid #ccc;
-            border-radius: 8px;
+            border: 1px solid #bbb;
+            border-radius: 6px;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             font-size: 14px;
             font-weight: bold;
-            position: relative;
+            color: #333;
         }
 
-        .cell.thsr {
-            background-color: #fff3e0;
-            border-color: var(--thsr-color);
-            color: var(--thsr-color);
-        }
+        .cell.thsr { background-color: #fff3e0; border: 2px solid var(--thsr-color); color: var(--thsr-color); }
 
-        .cell.thsr::after { content: "🚄高鐵"; font-size: 10px; }
-
-        /* 棋子樣式 */
         .piece {
-            width: 35px;
-            height: 35px;
+            width: 30px;
+            height: 30px;
             border-radius: 50%;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 20px;
+            font-size: 18px;
             position: absolute;
-            transition: all 0.3s ease;
-            z-index: 10;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 100;
+            pointer-events: none;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.3);
         }
         .piece.player { background: var(--player-color); border: 2px solid white; }
         .piece.ai { background: var(--ai-color); border: 2px solid white; }
 
-        /* 控制面板 */
-        .controls {
-            margin-top: 30px;
-            text-align: center;
+        .home-area {
+            display: flex;
+            gap: 10px;
+            margin: 10px 0;
+            padding: 10px;
+            background: #eee;
+            border-radius: 10px;
+            min-height: 40px;
+            width: 280px;
+            justify-content: center;
         }
 
+        .controls { text-align: center; margin-top: 10px; }
         button {
-            padding: 10px 30px;
+            padding: 12px 40px;
             font-size: 18px;
             cursor: pointer;
             background: var(--primary);
             color: white;
             border: none;
-            border-radius: 5px;
+            border-radius: 50px;
+            box-shadow: 0 4px 0 #1a252f;
         }
-
-        button:disabled { background: #95a5a6; }
-
-        #status {
-            margin-top: 10px;
-            font-weight: bold;
-            height: 24px;
-        }
+        button:active { transform: translateY(2px); box-shadow: 0 2px 0 #1a252f; }
+        button:disabled { background: #95a5a6; box-shadow: none; }
     </style>
 </head>
 <body>
@@ -120,28 +117,23 @@
     <div id="rule-modal">
         <div class="modal-content">
             <h2>🚄 台灣環島飛行棋</h2>
-            <ul style="text-align: left;">
-                <li>你的角色：🧋 珍奶 (紅)</li>
-                <li>電腦角色：🍍 鳳梨酥 (藍)</li>
-                <li><b>起飛：</b>隨便擲幾點都能出發！</li>
-                <li><b>高鐵：</b>停在橘色格子可額外前進 3 格。</li>
-                <li><b>碰撞：</b>踩到對方會把對方踢回起點。</li>
-                <li><b>勝利：</b>其中一顆棋子繞完一圈即獲勝。</li>
-            </ul>
-            <button onclick="closeModal()">開始環島！</button>
+            <p>1️⃣ 你的角色：🧋 珍奶<br>2️⃣ 隨便擲幾點都能出發<br>3️⃣ 踩到對方會踢回起點<br>4️⃣ 繞完一圈回到台北就贏了！</p>
+            <button onclick="startGame()">我知道了，開始！</button>
         </div>
     </div>
 
-    <h1>台灣環島大冒險</h1>
-    
-    <div id="status">準備好了嗎？</div>
+    <h1>台灣大冒險</h1>
+    <div id="status">點擊下方按鈕開始</div>
 
     <div class="game-container" id="board">
         </div>
 
+    <div class="home-area" id="player-home">玩家老家：</div>
+    <div class="home-area" id="ai-home">電腦老家：</div>
+
     <div class="controls">
-        <div id="dice-result" style="font-size: 40px; margin-bottom: 10px;">🎲</div>
-        <button id="roll-btn" onclick="playerTurn()">擲骰子</button>
+        <div id="dice-result" style="font-size: 50px; margin: 10px;">🎲</div>
+        <button id="roll-btn" onclick="playerTurn()" disabled>擲骰子</button>
     </div>
 
     <script>
@@ -154,145 +146,123 @@
             { name: "苗栗", x: 0, y: 1 }, { name: "新竹", x: 0, y: 0 }
         ];
 
-        // 棋子狀態：-1 表示在老家，0~11 表示在地圖上
         let gameState = {
             player: [-1, -1],
             ai: [-1, -1],
             isMoving: false
         };
 
+        // 初始化
         const board = document.getElementById('board');
-        const status = document.getElementById('status');
-        const rollBtn = document.getElementById('roll-btn');
-
-        // 初始化棋盤
-        cities.forEach((city, index) => {
-            const cell = document.createElement('div');
-            cell.className = `cell ${city.thsr ? 'thsr' : ''}`;
-            cell.style.gridColumnStart = city.x + 1;
-            cell.style.gridRowStart = city.y + 1;
-            cell.innerHTML = `<span>${city.name}</span>`;
-            cell.id = `cell-${index}`;
-            board.appendChild(cell);
+        cities.forEach((city, i) => {
+            const div = document.createElement('div');
+            div.className = `cell ${city.thsr ? 'thsr' : ''}`;
+            div.style.gridColumnStart = city.x + 1;
+            div.style.gridRowStart = city.y + 1;
+            div.id = `cell-${i}`;
+            div.innerHTML = `<span>${city.name}</span>`;
+            board.appendChild(div);
         });
 
-        // 創建棋子
         const pieces = {
-            p0: createPiece('🧋', 'player'),
-            p1: createPiece('🧋', 'player'),
-            a0: createPiece('🍍', 'ai'),
-            a1: createPiece('🍍', 'ai')
+            p0: document.createElement('div'), p1: document.createElement('div'),
+            a0: document.createElement('div'), a1: document.createElement('div')
         };
 
-        function createPiece(emoji, className) {
-            const div = document.createElement('div');
-            div.className = `piece ${className}`;
-            div.innerText = emoji;
-            document.body.appendChild(div);
-            return div;
-        }
+        Object.keys(pieces).forEach(k => {
+            pieces[k].className = `piece ${k[0] === 'p' ? 'player' : 'ai'}`;
+            pieces[k].innerText = k[0] === 'p' ? '🧋' : ' Pineapple 🍍';
+            pieces[k].innerText = k[0] === 'p' ? '🧋' : '🍍';
+            document.body.appendChild(pieces[k]);
+        });
 
-        function closeModal() {
+        function startGame() {
             document.getElementById('rule-modal').style.display = 'none';
-            updatePiecePositions();
+            document.getElementById('roll-btn').disabled = false;
+            document.getElementById('status').innerText = "你的回合，請擲骰子";
+            updatePositions();
         }
 
-        function updatePiecePositions() {
-            // 玩家棋子在下方，電腦在上方
-            renderPiece(pieces.p0, gameState.player[0], 0, 'player');
-            renderPiece(pieces.p1, gameState.player[1], 1, 'player');
-            renderPiece(pieces.a0, gameState.ai[0], 0, 'ai');
-            renderPiece(pieces.a1, gameState.ai[1], 1, 'ai');
+        function updatePositions() {
+            const homes = { p: document.getElementById('player-home'), a: document.getElementById('ai-home') };
+            
+            [0, 1].forEach(i => {
+                setPos(pieces[`p${i}`], gameState.player[i], i, homes.p);
+                setPos(pieces[`a${i}`], gameState.ai[i], i, homes.a);
+            });
         }
 
-        function renderPiece(el, pos, offset, type) {
-            if (pos === -1) {
-                // 在老家
-                const baseLeft = type === 'player' ? window.innerWidth/2 - 80 : window.innerWidth/2 + 40;
-                const baseTop = 550;
-                el.style.left = `${baseLeft + (offset * 40)}px`;
-                el.style.top = `${baseTop}px`;
+        function setPos(el, posIdx, offset, homeEl) {
+            if (posIdx === -1) {
+                const rect = homeEl.getBoundingClientRect();
+                el.style.left = `${rect.left + 80 + (offset * 40)}px`;
+                el.style.top = `${rect.top + 10}px`;
             } else {
-                const cell = document.getElementById(`cell-${pos}`);
+                const cell = document.getElementById(`cell-${posIdx % 12}`);
                 const rect = cell.getBoundingClientRect();
-                el.style.left = `${rect.left + 5 + (offset * 10)}px`;
-                el.style.top = `${rect.top + 5}px`;
+                el.style.left = `${rect.left + 15 + (offset * 10)}px`;
+                el.style.top = `${rect.top + 15}px`;
             }
         }
 
-        async function moveStepByStep(type, pieceIdx, steps) {
-            for (let i = 0; i < steps; i++) {
-                if (gameState[type][pieceIdx] === -1) {
-                    gameState[type][pieceIdx] = 0; // 出發
-                } else {
-                    gameState[type][pieceIdx] = (gameState[type][pieceIdx] + 1);
-                }
-                
-                // 檢查是否贏了 (繞完 12 格)
-                if (gameState[type][pieceIdx] >= 12) {
-                    updatePiecePositions();
-                    alert(type === 'player' ? "🎉 你環島成功了！玩家獲勝！" : "🤖 電腦先環島完畢了！");
-                    location.reload();
+        async function movePiece(type, idx, steps) {
+            for (let s = 0; s < steps; s++) {
+                if (gameState[type][idx] === -1) gameState[type][idx] = 0;
+                else gameState[type][idx]++;
+
+                if (gameState[type][idx] >= 12) {
+                    updatePositions();
+                    setTimeout(() => { alert(type === 'player' ? "🏆 你贏了！台灣環島王！" : "💻 電腦贏了！下次再努力！"); location.reload(); }, 500);
                     return false;
                 }
-
-                updatePiecePositions();
+                updatePositions();
                 await new Promise(r => setTimeout(r, 300));
             }
 
-            // 檢查高鐵加速
-            const currentPos = gameState[type][pieceIdx];
-            if (cities[currentPos].thsr) {
-                status.innerText = "🚄 衝啊！高鐵加速中！";
-                await new Promise(r => setTimeout(r, 500));
-                return await moveStepByStep(type, pieceIdx, 3);
+            // 檢查高鐵
+            const finalPos = gameState[type][idx];
+            if (cities[finalPos].thsr) {
+                document.getElementById('status').innerText = "🚄 高鐵加速！前進3格！";
+                await new Promise(r => setTimeout(r, 600));
+                return await movePiece(type, idx, 3);
             }
 
-            // 檢查碰撞 (Kick)
-            const opponent = type === 'player' ? 'ai' : 'player';
-            gameState[opponent].forEach((pos, idx) => {
-                if (pos === gameState[type][pieceIdx] && pos !== -1) {
-                    status.innerText = "💥 哎呀！撞到了！";
-                    gameState[opponent][idx] = -1;
-                }
-            });
-            updatePiecePositions();
+            // 檢查踢人
+            const opp = type === 'player' ? 'ai' : 'player';
+            gameState[opp] = gameState[opp].map(p => (p === finalPos ? -1 : p));
+            updatePositions();
             return true;
         }
 
         async function playerTurn() {
             if (gameState.isMoving) return;
             gameState.isMoving = true;
-            rollBtn.disabled = true;
+            document.getElementById('roll-btn').disabled = true;
 
-            const die = Math.floor(Math.random() * 6) + 1;
-            document.getElementById('dice-result').innerText = ['🎲','⚀','⚁','⚂','⚃','⚄','⚅'][die];
-            status.innerText = `你擲出了 ${die} 點`;
-
-            // 簡單策略：優先移動已經在路上的棋子，否則移動第一顆
-            let pIdx = gameState.player[0] !== -1 ? 0 : (gameState.player[1] !== -1 ? 1 : 0);
+            const roll = Math.floor(Math.random() * 6) + 1;
+            document.getElementById('dice-result').innerText = ['🎲','⚀','⚁','⚂','⚃','⚄','⚅'][roll];
             
-            const alive = await moveStepByStep('player', pIdx, die);
+            // 優先移動最前面的棋子
+            const pIdx = gameState.player[0] >= gameState.player[1] ? 0 : 1;
+            const cont = await movePiece('player', pIdx, roll);
             
-            if (alive) {
-                setTimeout(aiTurn, 1000);
-            }
+            if (cont) setTimeout(aiTurn, 1000);
         }
 
         async function aiTurn() {
-            status.innerText = "🤖 電腦思考中...";
-            const die = Math.floor(Math.random() * 6) + 1;
-            document.getElementById('dice-result').innerText = ['🎲','⚀','⚁','⚂','⚃','⚄','⚅'][die];
+            document.getElementById('status').innerText = "🤖 電腦擲骰中...";
+            const roll = Math.floor(Math.random() * 6) + 1;
+            document.getElementById('dice-result').innerText = ['🎲','⚀','⚁','⚂','⚃','⚄','⚅'][roll];
             
-            let aIdx = gameState.ai[0] !== -1 ? 0 : (gameState.ai[1] !== -1 ? 1 : 0);
-            await moveStepByStep('ai', aIdx, die);
+            const aIdx = gameState.ai[0] >= gameState.ai[1] ? 0 : 1;
+            await movePiece('ai', aIdx, roll);
 
-            status.innerText = "換你了！";
+            document.getElementById('status').innerText = "換你了！";
             gameState.isMoving = false;
-            rollBtn.disabled = false;
+            document.getElementById('roll-btn').disabled = false;
         }
 
-        window.onresize = updatePiecePositions;
+        window.onresize = updatePositions;
     </script>
 </body>
 </html>

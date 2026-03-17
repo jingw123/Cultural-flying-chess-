@@ -125,4 +125,174 @@
                 <li>電腦角色：🍍 鳳梨酥 (藍)</li>
                 <li><b>起飛：</b>隨便擲幾點都能出發！</li>
                 <li><b>高鐵：</b>停在橘色格子可額外前進 3 格。</li>
-                <li><b>碰撞：</b>
+                <li><b>碰撞：</b>踩到對方會把對方踢回起點。</li>
+                <li><b>勝利：</b>其中一顆棋子繞完一圈即獲勝。</li>
+            </ul>
+            <button onclick="closeModal()">開始環島！</button>
+        </div>
+    </div>
+
+    <h1>台灣環島大冒險</h1>
+    
+    <div id="status">準備好了嗎？</div>
+
+    <div class="game-container" id="board">
+        </div>
+
+    <div class="controls">
+        <div id="dice-result" style="font-size: 40px; margin-bottom: 10px;">🎲</div>
+        <button id="roll-btn" onclick="playerTurn()">擲骰子</button>
+    </div>
+
+    <script>
+        const cities = [
+            { name: "台北", x: 1, y: 0 }, { name: "宜蘭", x: 2, y: 0 },
+            { name: "花蓮", x: 2, y: 1 }, { name: "台東", x: 2, y: 2 },
+            { name: "屏東", x: 2, y: 3 }, { name: "高雄", x: 2, y: 4, thsr: true },
+            { name: "台南", x: 1, y: 4 }, { name: "嘉義", x: 0, y: 4 },
+            { name: "雲林", x: 0, y: 3 }, { name: "台中", x: 0, y: 2, thsr: true },
+            { name: "苗栗", x: 0, y: 1 }, { name: "新竹", x: 0, y: 0 }
+        ];
+
+        // 棋子狀態：-1 表示在老家，0~11 表示在地圖上
+        let gameState = {
+            player: [-1, -1],
+            ai: [-1, -1],
+            isMoving: false
+        };
+
+        const board = document.getElementById('board');
+        const status = document.getElementById('status');
+        const rollBtn = document.getElementById('roll-btn');
+
+        // 初始化棋盤
+        cities.forEach((city, index) => {
+            const cell = document.createElement('div');
+            cell.className = `cell ${city.thsr ? 'thsr' : ''}`;
+            cell.style.gridColumnStart = city.x + 1;
+            cell.style.gridRowStart = city.y + 1;
+            cell.innerHTML = `<span>${city.name}</span>`;
+            cell.id = `cell-${index}`;
+            board.appendChild(cell);
+        });
+
+        // 創建棋子
+        const pieces = {
+            p0: createPiece('🧋', 'player'),
+            p1: createPiece('🧋', 'player'),
+            a0: createPiece('🍍', 'ai'),
+            a1: createPiece('🍍', 'ai')
+        };
+
+        function createPiece(emoji, className) {
+            const div = document.createElement('div');
+            div.className = `piece ${className}`;
+            div.innerText = emoji;
+            document.body.appendChild(div);
+            return div;
+        }
+
+        function closeModal() {
+            document.getElementById('rule-modal').style.display = 'none';
+            updatePiecePositions();
+        }
+
+        function updatePiecePositions() {
+            // 玩家棋子在下方，電腦在上方
+            renderPiece(pieces.p0, gameState.player[0], 0, 'player');
+            renderPiece(pieces.p1, gameState.player[1], 1, 'player');
+            renderPiece(pieces.a0, gameState.ai[0], 0, 'ai');
+            renderPiece(pieces.a1, gameState.ai[1], 1, 'ai');
+        }
+
+        function renderPiece(el, pos, offset, type) {
+            if (pos === -1) {
+                // 在老家
+                const baseLeft = type === 'player' ? window.innerWidth/2 - 80 : window.innerWidth/2 + 40;
+                const baseTop = 550;
+                el.style.left = `${baseLeft + (offset * 40)}px`;
+                el.style.top = `${baseTop}px`;
+            } else {
+                const cell = document.getElementById(`cell-${pos}`);
+                const rect = cell.getBoundingClientRect();
+                el.style.left = `${rect.left + 5 + (offset * 10)}px`;
+                el.style.top = `${rect.top + 5}px`;
+            }
+        }
+
+        async function moveStepByStep(type, pieceIdx, steps) {
+            for (let i = 0; i < steps; i++) {
+                if (gameState[type][pieceIdx] === -1) {
+                    gameState[type][pieceIdx] = 0; // 出發
+                } else {
+                    gameState[type][pieceIdx] = (gameState[type][pieceIdx] + 1);
+                }
+                
+                // 檢查是否贏了 (繞完 12 格)
+                if (gameState[type][pieceIdx] >= 12) {
+                    updatePiecePositions();
+                    alert(type === 'player' ? "🎉 你環島成功了！玩家獲勝！" : "🤖 電腦先環島完畢了！");
+                    location.reload();
+                    return false;
+                }
+
+                updatePiecePositions();
+                await new Promise(r => setTimeout(r, 300));
+            }
+
+            // 檢查高鐵加速
+            const currentPos = gameState[type][pieceIdx];
+            if (cities[currentPos].thsr) {
+                status.innerText = "🚄 衝啊！高鐵加速中！";
+                await new Promise(r => setTimeout(r, 500));
+                return await moveStepByStep(type, pieceIdx, 3);
+            }
+
+            // 檢查碰撞 (Kick)
+            const opponent = type === 'player' ? 'ai' : 'player';
+            gameState[opponent].forEach((pos, idx) => {
+                if (pos === gameState[type][pieceIdx] && pos !== -1) {
+                    status.innerText = "💥 哎呀！撞到了！";
+                    gameState[opponent][idx] = -1;
+                }
+            });
+            updatePiecePositions();
+            return true;
+        }
+
+        async function playerTurn() {
+            if (gameState.isMoving) return;
+            gameState.isMoving = true;
+            rollBtn.disabled = true;
+
+            const die = Math.floor(Math.random() * 6) + 1;
+            document.getElementById('dice-result').innerText = ['🎲','⚀','⚁','⚂','⚃','⚄','⚅'][die];
+            status.innerText = `你擲出了 ${die} 點`;
+
+            // 簡單策略：優先移動已經在路上的棋子，否則移動第一顆
+            let pIdx = gameState.player[0] !== -1 ? 0 : (gameState.player[1] !== -1 ? 1 : 0);
+            
+            const alive = await moveStepByStep('player', pIdx, die);
+            
+            if (alive) {
+                setTimeout(aiTurn, 1000);
+            }
+        }
+
+        async function aiTurn() {
+            status.innerText = "🤖 電腦思考中...";
+            const die = Math.floor(Math.random() * 6) + 1;
+            document.getElementById('dice-result').innerText = ['🎲','⚀','⚁','⚂','⚃','⚄','⚅'][die];
+            
+            let aIdx = gameState.ai[0] !== -1 ? 0 : (gameState.ai[1] !== -1 ? 1 : 0);
+            await moveStepByStep('ai', aIdx, die);
+
+            status.innerText = "換你了！";
+            gameState.isMoving = false;
+            rollBtn.disabled = false;
+        }
+
+        window.onresize = updatePiecePositions;
+    </script>
+</body>
+</html>

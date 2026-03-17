@@ -3,302 +3,247 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>台灣美食拼音大冒險 - 蛇梯棋</title>
+    <title>台灣文化拼音冒險 - 蛇梯棋</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         :root {
-            --land-color: #e8f5e9;
-            --path-color: #ffffff;
-            --text-color: #2e7d32;
-            --thsr-color: #f39c12;
-            --trap-color: #e74c3c;
+            --bg: #fffbe6;
+            --land: #e8f5e9;
+            --primary: #2e7d32;
+            --thsr: #f39c12;
+            --trap: #e74c3c;
         }
 
         body {
             font-family: "Microsoft JhengHei", cursive, sans-serif;
-            background-color: #fffbe6;
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            color: var(--text-color);
+            background-color: var(--bg);
+            display: flex; flex-direction: column; align-items: center; margin: 0; padding: 10px;
         }
 
-        /* 台灣背景地圖容器 */
-        #game-wrapper {
+        /* 台灣島外框 */
+        #taiwan-map {
             position: relative;
-            width: 380px;
-            height: 600px;
-            background: var(--land-color);
-            border-radius: 50% 50% 40% 40% / 30% 30% 70% 70%; /* 模擬台灣形狀 */
-            border: 4px solid #a5d6a7;
-            margin-top: 20px;
-            box-shadow: 20px 20px 60px #d9d6c3, -20px -20px 60px #ffffff;
-            overflow: hidden;
+            width: 360px; height: 620px;
+            background: var(--land);
+            border: 5px solid #a5d6a7;
+            border-radius: 40% 40% 45% 45% / 20% 20% 80% 80%;
+            margin-top: 10px;
             display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            grid-template-rows: repeat(7, 1fr);
-            padding: 20px;
-            gap: 5px;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(8, 1fr);
+            gap: 5px; padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
         }
 
-        /* 標題與資訊 */
-        h1 { margin: 10px 0 5px; font-size: 24px; text-shadow: 1px 1px 2px white; }
-        #status-bar { font-weight: bold; margin-bottom: 10px; color: #1b5e20; }
-
-        /* 格子樣式 */
         .cell {
-            background: rgba(255, 255, 255, 0.7);
-            border: 1.5px dashed #81c784;
-            border-radius: 8px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            font-size: 11px;
-            position: relative;
-            z-index: 1;
+            background: rgba(255,255,255,0.8);
+            border: 1px dashed #81c784;
+            border-radius: 10px;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            font-size: 12px; font-weight: bold; text-align: center;
+            position: relative; z-index: 5;
         }
-        .cell.special { background: #fff9c4; border-style: solid; }
-        .cell.thsr { border: 2px solid var(--thsr-color); color: var(--thsr-color); }
-        .cell.trap { border: 2px solid var(--trap-color); color: var(--trap-color); }
 
-        /* 棋子樣式 */
+        .cell.start { background: #ffccbc; }
+        .cell.end { background: #fff176; border: 2px solid gold; }
+        
+        /* 視覺化滑梯與梯子 */
+        .line {
+            position: absolute; border-radius: 10px; pointer-events: none; z-index: 2;
+            opacity: 0.6; transform-origin: top left;
+        }
+        .line.ladder { background: var(--thsr); height: 6px; }
+        .line.snake { background: var(--trap); height: 6px; }
+
+        /* 棋子 */
         .piece {
-            width: 35px; height: 35px;
-            position: absolute;
-            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            z-index: 100;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 24px;
-            filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.2));
+            width: 40px; height: 40px; position: absolute;
+            transition: all 0.5s ease-in-out; z-index: 100;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 30px; filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.3));
         }
 
-        /* 彈窗樣式 */
-        #modal-overlay {
+        /* 彈窗 */
+        #modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.7); display: none;
+            background: rgba(0,0,0,0.8); display: none;
             justify-content: center; align-items: center; z-index: 1000;
         }
-        .quiz-card {
+        .quiz-box {
             background: white; padding: 25px; border-radius: 20px;
-            max-width: 300px; text-align: center; border: 5px solid #81c784;
+            width: 300px; text-align: center; border: 6px solid #4caf50;
         }
-        .option-btn {
-            display: block; width: 100%; padding: 10px; margin: 10px 0;
-            border: 2px solid #81c784; border-radius: 10px; background: none;
-            cursor: pointer; font-size: 16px;
+        .opt {
+            display: block; width: 100%; padding: 12px; margin: 10px 0;
+            border: 2px solid #ddd; border-radius: 10px; font-size: 18px; cursor: pointer;
         }
-        .option-btn:hover { background: #e8f5e9; }
+        .opt:hover { background: #f1f8e9; border-color: #4caf50; }
 
-        /* 控制面板 */
         .controls {
-            margin-top: 15px; text-align: center;
-            background: white; padding: 15px; border-radius: 20px; width: 340px;
+            margin-top: 15px; background: white; padding: 15px; border-radius: 20px;
+            width: 340px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
-        #dice-btn {
-            background: #4caf50; color: white; border: none; padding: 10px 40px;
+        #roll-btn {
+            background: #4caf50; color: white; border: none; padding: 12px 50px;
             font-size: 20px; border-radius: 50px; cursor: pointer;
-            box-shadow: 0 4px #2e7d32;
         }
-        #dice-btn:active { transform: translateY(2px); box-shadow: 0 2px #2e7d32; }
-
-        #qrcode { margin-top: 10px; }
+        #roll-btn:disabled { background: #ccc; }
     </style>
 </head>
 <body>
 
-    <h1>🏮 台灣美食大冒險</h1>
-    <div id="status-bar">正在載入地圖...</div>
+    <h1 style="color: #2e7d32; margin: 5px;">📍 台灣拼音大冒險</h1>
+    <div id="current-player" style="font-size: 18px; font-weight: bold; color: #e67e22;">
+        請點擊「開始」選擇角色
+    </div>
 
-    <div id="game-wrapper">
+    <div id="taiwan-map">
         </div>
 
     <div class="controls">
-        <div id="dice-display" style="font-size: 40px;">🎲</div>
-        <button id="dice-btn" onclick="rollDice()">擲骰子</button>
-        <div id="player-info" style="margin-top: 10px;"></div>
-        <div id="qrcode" title="掃描 QR Code 分享遊戲"></div>
-        <p style="font-size: 10px; color: #999;">掃描 QR Code 即可加入遊戲</p>
+        <div id="dice-val" style="font-size: 40px; margin-bottom: 5px;">🎲</div>
+        <button id="roll-btn" onclick="takeTurn()">擲骰子移動</button>
+        <div id="qrcode" style="display: flex; justify-content: center; margin-top: 10px;"></div>
     </div>
 
-    <div id="modal-overlay">
-        <div class="quiz-card" id="quiz-card">
-            <h2 id="quiz-food">美食名稱</h2>
-            <p>這個美食的拼音是？</p>
-            <div id="quiz-options"></div>
+    <div id="modal">
+        <div class="quiz-box">
+            <h2 id="q-title" style="color: #2e7d32;">美食挑戰</h2>
+            <p id="q-text" style="font-size: 18px;">請問這個拼音對嗎？</p>
+            <div id="q-opts"></div>
         </div>
     </div>
 
     <script>
-        // 美食資料庫 (含拼音題目)
-        const foods = [
-            { name: "珍珠奶茶", pinyin: "Zhēnzhū Nǎichá", options: ["Zhēnzhū Nǎichá", "Zhēnzhū Lǎichá", "Zēnzū Nǎicá"] },
-            { name: "牛肉麵", pinyin: "Niúròumiàn", options: ["Niúròumiàn", "Liúròumiàn", "Niúlòumiàn"] },
-            { name: "小籠包", pinyin: "Xiǎolóngbāo", options: ["Xiǎolóngbāo", "Xiǎonóngbāo", "Siǎolóngbāo"] },
-            { name: "臭豆腐", pinyin: "Chòudòufu", options: ["Chòudòufu", "Còudòufu", "Chòudòuhǔ"] },
-            { name: "滷肉飯", pinyin: "Lǔròufàn", options: ["Lǔròufàn", "Nǔròufàn", "Lǔlòufàn"] },
-            { name: "鳳梨酥", pinyin: "Fènglísū", options: ["Fènglísū", "Fènlísū", "Hènglísū"] }
+        const mapData = [
+            { name: "墾丁" }, { name: "恆春" }, { name: "屏東" }, { name: "台東" },
+            { name: "花蓮" }, { name: "宜蘭" }, { name: "基隆" }, { name: "台北" },
+            { name: "新北" }, { name: "桃園" }, { name: "新竹" }, { name: "苗栗" },
+            { name: "台中" }, { name: "彰化" }, { name: "南投" }, { name: "雲林" },
+            { name: "嘉義" }, { name: "台南" }, { name: "高雄" }, { name: "阿里山" },
+            { name: "日月潭" }, { name: "太魯閣" }, { name: "九份" }, { name: "淡水" },
+            { name: "陽明山" }, { name: "西門町" }, { name: "士林夜市" }, { name: "台北101" }
         ];
 
-        // 地圖格子設定 (35格 S型)
-        const totalCells = 35;
-        const specialCells = {
-            5: { type: 'thsr', target: 15, label: "🚄 高鐵加速" },
-            22: { type: 'thsr', target: 32, label: "🚀 101電梯" },
-            12: { type: 'trap', target: 3, label: "🚥 塞車了" },
-            28: { type: 'trap', target: 18, label: "🌧️ 遇大雨" }
+        const questions = [
+            { q: "珍珠奶茶", a: "Zhēnzhū Nǎichá", opts: ["Zhēnzhū Nǎichá", "Zēnzū Nǎicá", "Zhēnzhū Lǎichá"] },
+            { q: "牛肉麵", a: "Niúròumiàn", opts: ["Niúròumiàn", "Liúròumiàn", "Niúlòumiàn"] },
+            { q: "臭豆腐", a: "Chòudòufu", opts: ["Chòudòufu", "Còudòufu", "Chòudòuhǔ"] },
+            { q: "小籠包", a: "Xiǎolóngbāo", opts: ["Xiǎolóngbāo", "Xiǎonóngbāo", "Siǎolóngbāo"] },
+            { q: "滷肉飯", a: "Lǔròufàn", opts: ["Lǔròufàn", "Nǔròufàn", "Lǔlòufàn"] }
+        ];
+
+        // 特殊格：梯子(正) 與 蛇(負)
+        const events = {
+            2: { label: "🚄 高鐵特快：\n直達台中！", target: 12, type: 'ladder' },
+            18: { label: "🚀 101直達：\n衝向終點！", target: 27, type: 'ladder' },
+            10: { label: "🚥 國道塞車：\n退回新竹！", target: 4, type: 'snake' },
+            22: { label: "🌧️ 九份大雨：\n滑回花蓮！", target: 5, type: 'snake' }
         };
 
-        let players = [
-            { id: 1, pos: 0, emoji: "🐻‍❄️", color: "#e74c3c" },
-            { id: 2, pos: 0, emoji: "🐱", color: "#3498db" }
-        ];
-        let currentPlayerIdx = 0;
+        let playerPos = 0;
         let isMoving = false;
+        const piece = document.createElement('div');
+        piece.className = 'piece';
+        piece.innerText = "🧋";
 
-        // 初始化地圖格子
-        function initBoard() {
-            const wrapper = document.getElementById('game-wrapper');
-            for (let i = 0; i < totalCells; i++) {
+        function init() {
+            const map = document.getElementById('taiwan-map');
+            mapData.forEach((d, i) => {
                 const cell = document.createElement('div');
-                cell.className = 'cell';
-                
-                // 決定 S 型排列順序
-                let row = Math.floor(i / 5);
-                let col = (row % 2 === 0) ? (i % 5) : (4 - (i % 5));
-                cell.style.gridRow = 7 - row;
+                cell.className = `cell ${i===0?'start':''} ${i===27?'end':''}`;
+                // S型排列邏輯
+                let row = Math.floor(i / 4);
+                let col = (row % 2 === 0) ? (i % 4) : (3 - (i % 4));
+                cell.style.gridRow = 8 - row;
                 cell.style.gridColumn = col + 1;
-
-                if (i === 0) cell.innerHTML = "起點";
-                else if (i === totalCells - 1) cell.innerHTML = "🏁 玉山";
-                else if (specialCells[i]) {
-                    cell.classList.add(specialCells[i].type);
-                    cell.innerHTML = `<b>${specialCells[i].label}</b>`;
-                } else if (i % 5 === 0) {
-                    const food = foods[Math.floor(Math.random() * foods.length)];
-                    cell.innerHTML = `🍰<br>${food.name}`;
-                    cell.dataset.foodIdx = foods.indexOf(food);
-                    cell.classList.add('special');
-                } else {
-                    cell.innerHTML = i;
-                }
-                cell.id = `cell-${i}`;
-                wrapper.appendChild(cell);
-            }
-
-            // 初始化棋子
-            players.forEach(p => {
-                const div = document.createElement('div');
-                div.className = 'piece';
-                div.id = `player-${p.id}`;
-                div.innerHTML = p.emoji;
-                document.body.appendChild(div);
+                cell.id = `c-${i}`;
+                cell.innerHTML = `<span>${d.name}</span><div style="font-size:9px">${i+1}</div>`;
+                map.appendChild(cell);
             });
-            updateUI();
+            document.body.appendChild(piece);
+            setTimeout(updatePiece, 500);
+            new QRCode(document.getElementById("qrcode"), { text: window.location.href, width: 60, height: 60 });
         }
 
-        function updateUI() {
-            players.forEach(p => {
-                const cell = document.getElementById(`cell-${p.pos}`);
-                const rect = cell.getBoundingClientRect();
-                const el = document.getElementById(`player-${p.id}`);
-                el.style.left = `${rect.left + (p.id === 1 ? 5 : 20)}px`;
-                el.style.top = `${rect.top + (p.id === 1 ? 5 : 20)}px`;
-            });
-            const cp = players[currentPlayerIdx];
-            document.getElementById('status-bar').innerText = `輪到玩家 ${cp.emoji} 擲骰子`;
+        function updatePiece() {
+            const target = document.getElementById(`c-${playerPos}`);
+            const rect = target.getBoundingClientRect();
+            piece.style.left = `${rect.left + 5}px`;
+            piece.style.top = `${rect.top + 5}px`;
         }
 
-        async function rollDice() {
+        async function takeTurn() {
             if (isMoving) return;
             isMoving = true;
-            document.getElementById('dice-btn').disabled = true;
+            document.getElementById('roll-btn').disabled = true;
 
             const roll = Math.floor(Math.random() * 6) + 1;
-            document.getElementById('dice-display').innerText = ['🎲','⚀','⚁','⚂','⚃','⚄','⚅'][roll];
-            
-            await movePlayer(currentPlayerIdx, roll);
-        }
+            document.getElementById('dice-val').innerText = ['🎲','⚀','⚁','⚂','⚃','⚄','⚅'][roll];
 
-        async function movePlayer(pIdx, steps) {
-            let p = players[pIdx];
-            for (let i = 0; i < steps; i++) {
-                if (p.pos < totalCells - 1) {
-                    p.pos++;
-                    updateUI();
+            // 1. 移動
+            for (let i = 0; i < roll; i++) {
+                if (playerPos < 27) {
+                    playerPos++;
+                    updatePiece();
                     await new Promise(r => setTimeout(r, 400));
                 }
             }
 
-            // 檢查特殊格子
-            const currentCell = document.getElementById(`cell-${p.pos}`);
-            
-            // 1. 檢查美食題目
-            if (currentCell.dataset.foodIdx !== undefined) {
-                await startQuiz(pIdx, currentCell.dataset.foodIdx);
-            } 
-            // 2. 檢查蛇梯
-            else if (specialCells[p.pos]) {
-                const effect = specialCells[p.pos];
-                document.getElementById('status-bar').innerText = effect.label;
-                await new Promise(r => setTimeout(r, 800));
-                p.pos = effect.target;
-                updateUI();
+            // 2. 到達後必須答題
+            await showQuiz();
+
+            // 3. 檢查特殊事件 (梯子或蛇)
+            if (events[playerPos]) {
+                const ev = events[playerPos];
+                alert(ev.label);
+                playerPos = ev.target;
+                updatePiece();
+                await new Promise(r => setTimeout(r, 500));
             }
 
-            if (p.pos >= totalCells - 1) {
-                alert(`🎉 恭喜玩家 ${p.emoji} 成功登頂玉山！`);
+            if (playerPos >= 27) {
+                alert("🎉 恭喜！你完成了台灣環島美食之旅！");
                 location.reload();
             } else {
-                currentPlayerIdx = (currentPlayerIdx + 1) % players.length;
                 isMoving = false;
-                document.getElementById('dice-btn').disabled = false;
-                updateUI();
+                document.getElementById('roll-btn').disabled = false;
             }
         }
 
-        function startQuiz(pIdx, foodIdx) {
+        function showQuiz() {
             return new Promise(resolve => {
-                const food = foods[foodIdx];
-                const overlay = document.getElementById('modal-overlay');
-                const optionsDiv = document.getElementById('quiz-options');
+                const quiz = questions[Math.floor(Math.random() * questions.length)];
+                const modal = document.getElementById('modal');
+                const opts = document.getElementById('q-opts');
                 
-                document.getElementById('quiz-food').innerText = food.name;
-                optionsDiv.innerHTML = '';
-                overlay.style.display = 'flex';
+                document.getElementById('q-title').innerText = `抵達 ${mapData[playerPos].name}！`;
+                document.getElementById('q-text').innerText = `請選擇「${quiz.q}」的正確拼音：`;
+                opts.innerHTML = '';
+                modal.style.display = 'flex';
 
-                food.options.forEach(opt => {
+                quiz.opts.forEach(o => {
                     const btn = document.createElement('button');
-                    btn.className = 'option-btn';
-                    btn.innerText = opt;
+                    btn.className = 'opt';
+                    btn.innerText = o;
                     btn.onclick = () => {
-                        if (opt === food.pinyin) {
-                            alert("✅ 太棒了！答對了！");
+                        if (o === quiz.a) {
+                            alert("✅ 答對了！留在原地。");
                         } else {
-                            alert(`❌ 答錯了，正確拼音是 ${food.pinyin}。退後兩格！`);
-                            players[pIdx].pos = Math.max(0, players[pIdx].pos - 2);
+                            alert(`❌ 答錯了！正確答案是 ${quiz.a}。退後 2 格！`);
+                            playerPos = Math.max(0, playerPos - 2);
+                            updatePiece();
                         }
-                        overlay.style.display = 'none';
-                        updateUI();
+                        modal.style.display = 'none';
                         resolve();
                     };
-                    optionsDiv.appendChild(btn);
+                    opts.appendChild(btn);
                 });
             });
         }
 
-        // 產生 QR Code
-        window.onload = () => {
-            initBoard();
-            new QRCode(document.getElementById("qrcode"), {
-                text: window.location.href,
-                width: 80,
-                height: 80
-            });
-        };
+        window.onload = init;
+        window.onresize = updatePiece;
     </script>
 </body>
 </html>

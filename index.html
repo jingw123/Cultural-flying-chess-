@@ -3,266 +3,302 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>台灣環島飛行棋</title>
+    <title>台灣美食拼音大冒險 - 蛇梯棋</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         :root {
-            --primary: #2c3e50;
-            --player-color: #e74c3c;
-            --ai-color: #3498db;
+            --land-color: #e8f5e9;
+            --path-color: #ffffff;
+            --text-color: #2e7d32;
             --thsr-color: #f39c12;
+            --trap-color: #e74c3c;
         }
 
         body {
-            font-family: "Microsoft JhengHei", sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            background-color: #f0f2f5;
+            font-family: "Microsoft JhengHei", cursive, sans-serif;
+            background-color: #fffbe6;
             margin: 0;
-            padding: 10px;
-            overflow-x: hidden;
-        }
-
-        #rule-modal {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9);
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
-            z-index: 2000;
-        }
-        .modal-content {
-            background: white;
-            padding: 25px;
-            border-radius: 15px;
-            max-width: 320px;
-            text-align: center;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            color: var(--text-color);
         }
 
-        .game-container {
+        /* 台灣背景地圖容器 */
+        #game-wrapper {
             position: relative;
+            width: 380px;
+            height: 600px;
+            background: var(--land-color);
+            border-radius: 50% 50% 40% 40% / 30% 30% 70% 70%; /* 模擬台灣形狀 */
+            border: 4px solid #a5d6a7;
+            margin-top: 20px;
+            box-shadow: 20px 20px 60px #d9d6c3, -20px -20px 60px #ffffff;
+            overflow: hidden;
             display: grid;
-            grid-template-columns: repeat(3, 90px);
-            grid-template-rows: repeat(5, 70px);
-            gap: 8px;
-            margin: 20px auto;
-            background: #ddd;
-            padding: 10px;
-            border-radius: 10px;
+            grid-template-columns: repeat(5, 1fr);
+            grid-template-rows: repeat(7, 1fr);
+            padding: 20px;
+            gap: 5px;
         }
 
+        /* 標題與資訊 */
+        h1 { margin: 10px 0 5px; font-size: 24px; text-shadow: 1px 1px 2px white; }
+        #status-bar { font-weight: bold; margin-bottom: 10px; color: #1b5e20; }
+
+        /* 格子樣式 */
         .cell {
-            background: white;
-            border: 1px solid #bbb;
-            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.7);
+            border: 1.5px dashed #81c784;
+            border-radius: 8px;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            font-size: 14px;
-            font-weight: bold;
-            color: #333;
+            font-size: 11px;
+            position: relative;
+            z-index: 1;
         }
+        .cell.special { background: #fff9c4; border-style: solid; }
+        .cell.thsr { border: 2px solid var(--thsr-color); color: var(--thsr-color); }
+        .cell.trap { border: 2px solid var(--trap-color); color: var(--trap-color); }
 
-        .cell.thsr { background-color: #fff3e0; border: 2px solid var(--thsr-color); color: var(--thsr-color); }
-
+        /* 棋子樣式 */
         .piece {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
+            width: 35px; height: 35px;
+            position: absolute;
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 100;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 18px;
-            position: absolute;
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            z-index: 100;
-            pointer-events: none;
-            box-shadow: 0 3px 6px rgba(0,0,0,0.3);
-        }
-        .piece.player { background: var(--player-color); border: 2px solid white; }
-        .piece.ai { background: var(--ai-color); border: 2px solid white; }
-
-        .home-area {
-            display: flex;
-            gap: 10px;
-            margin: 10px 0;
-            padding: 10px;
-            background: #eee;
-            border-radius: 10px;
-            min-height: 40px;
-            width: 280px;
-            justify-content: center;
+            font-size: 24px;
+            filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.2));
         }
 
-        .controls { text-align: center; margin-top: 10px; }
-        button {
-            padding: 12px 40px;
-            font-size: 18px;
-            cursor: pointer;
-            background: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 50px;
-            box-shadow: 0 4px 0 #1a252f;
+        /* 彈窗樣式 */
+        #modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7); display: none;
+            justify-content: center; align-items: center; z-index: 1000;
         }
-        button:active { transform: translateY(2px); box-shadow: 0 2px 0 #1a252f; }
-        button:disabled { background: #95a5a6; box-shadow: none; }
+        .quiz-card {
+            background: white; padding: 25px; border-radius: 20px;
+            max-width: 300px; text-align: center; border: 5px solid #81c784;
+        }
+        .option-btn {
+            display: block; width: 100%; padding: 10px; margin: 10px 0;
+            border: 2px solid #81c784; border-radius: 10px; background: none;
+            cursor: pointer; font-size: 16px;
+        }
+        .option-btn:hover { background: #e8f5e9; }
+
+        /* 控制面板 */
+        .controls {
+            margin-top: 15px; text-align: center;
+            background: white; padding: 15px; border-radius: 20px; width: 340px;
+        }
+        #dice-btn {
+            background: #4caf50; color: white; border: none; padding: 10px 40px;
+            font-size: 20px; border-radius: 50px; cursor: pointer;
+            box-shadow: 0 4px #2e7d32;
+        }
+        #dice-btn:active { transform: translateY(2px); box-shadow: 0 2px #2e7d32; }
+
+        #qrcode { margin-top: 10px; }
     </style>
 </head>
 <body>
 
-    <div id="rule-modal">
-        <div class="modal-content">
-            <h2>🚄 台灣環島飛行棋</h2>
-            <p>1️⃣ 你的角色：🧋 珍奶<br>2️⃣ 隨便擲幾點都能出發<br>3️⃣ 踩到對方會踢回起點<br>4️⃣ 繞完一圈回到台北就贏了！</p>
-            <button onclick="startGame()">我知道了，開始！</button>
+    <h1>🏮 台灣美食大冒險</h1>
+    <div id="status-bar">正在載入地圖...</div>
+
+    <div id="game-wrapper">
         </div>
-    </div>
-
-    <h1>台灣大冒險</h1>
-    <div id="status">點擊下方按鈕開始</div>
-
-    <div class="game-container" id="board">
-        </div>
-
-    <div class="home-area" id="player-home">玩家老家：</div>
-    <div class="home-area" id="ai-home">電腦老家：</div>
 
     <div class="controls">
-        <div id="dice-result" style="font-size: 50px; margin: 10px;">🎲</div>
-        <button id="roll-btn" onclick="playerTurn()" disabled>擲骰子</button>
+        <div id="dice-display" style="font-size: 40px;">🎲</div>
+        <button id="dice-btn" onclick="rollDice()">擲骰子</button>
+        <div id="player-info" style="margin-top: 10px;"></div>
+        <div id="qrcode" title="掃描 QR Code 分享遊戲"></div>
+        <p style="font-size: 10px; color: #999;">掃描 QR Code 即可加入遊戲</p>
+    </div>
+
+    <div id="modal-overlay">
+        <div class="quiz-card" id="quiz-card">
+            <h2 id="quiz-food">美食名稱</h2>
+            <p>這個美食的拼音是？</p>
+            <div id="quiz-options"></div>
+        </div>
     </div>
 
     <script>
-        const cities = [
-            { name: "台北", x: 1, y: 0 }, { name: "宜蘭", x: 2, y: 0 },
-            { name: "花蓮", x: 2, y: 1 }, { name: "台東", x: 2, y: 2 },
-            { name: "屏東", x: 2, y: 3 }, { name: "高雄", x: 2, y: 4, thsr: true },
-            { name: "台南", x: 1, y: 4 }, { name: "嘉義", x: 0, y: 4 },
-            { name: "雲林", x: 0, y: 3 }, { name: "台中", x: 0, y: 2, thsr: true },
-            { name: "苗栗", x: 0, y: 1 }, { name: "新竹", x: 0, y: 0 }
+        // 美食資料庫 (含拼音題目)
+        const foods = [
+            { name: "珍珠奶茶", pinyin: "Zhēnzhū Nǎichá", options: ["Zhēnzhū Nǎichá", "Zhēnzhū Lǎichá", "Zēnzū Nǎicá"] },
+            { name: "牛肉麵", pinyin: "Niúròumiàn", options: ["Niúròumiàn", "Liúròumiàn", "Niúlòumiàn"] },
+            { name: "小籠包", pinyin: "Xiǎolóngbāo", options: ["Xiǎolóngbāo", "Xiǎonóngbāo", "Siǎolóngbāo"] },
+            { name: "臭豆腐", pinyin: "Chòudòufu", options: ["Chòudòufu", "Còudòufu", "Chòudòuhǔ"] },
+            { name: "滷肉飯", pinyin: "Lǔròufàn", options: ["Lǔròufàn", "Nǔròufàn", "Lǔlòufàn"] },
+            { name: "鳳梨酥", pinyin: "Fènglísū", options: ["Fènglísū", "Fènlísū", "Hènglísū"] }
         ];
 
-        let gameState = {
-            player: [-1, -1],
-            ai: [-1, -1],
-            isMoving: false
+        // 地圖格子設定 (35格 S型)
+        const totalCells = 35;
+        const specialCells = {
+            5: { type: 'thsr', target: 15, label: "🚄 高鐵加速" },
+            22: { type: 'thsr', target: 32, label: "🚀 101電梯" },
+            12: { type: 'trap', target: 3, label: "🚥 塞車了" },
+            28: { type: 'trap', target: 18, label: "🌧️ 遇大雨" }
         };
 
-        // 初始化
-        const board = document.getElementById('board');
-        cities.forEach((city, i) => {
-            const div = document.createElement('div');
-            div.className = `cell ${city.thsr ? 'thsr' : ''}`;
-            div.style.gridColumnStart = city.x + 1;
-            div.style.gridRowStart = city.y + 1;
-            div.id = `cell-${i}`;
-            div.innerHTML = `<span>${city.name}</span>`;
-            board.appendChild(div);
-        });
+        let players = [
+            { id: 1, pos: 0, emoji: "🐻‍❄️", color: "#e74c3c" },
+            { id: 2, pos: 0, emoji: "🐱", color: "#3498db" }
+        ];
+        let currentPlayerIdx = 0;
+        let isMoving = false;
 
-        const pieces = {
-            p0: document.createElement('div'), p1: document.createElement('div'),
-            a0: document.createElement('div'), a1: document.createElement('div')
-        };
+        // 初始化地圖格子
+        function initBoard() {
+            const wrapper = document.getElementById('game-wrapper');
+            for (let i = 0; i < totalCells; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                
+                // 決定 S 型排列順序
+                let row = Math.floor(i / 5);
+                let col = (row % 2 === 0) ? (i % 5) : (4 - (i % 5));
+                cell.style.gridRow = 7 - row;
+                cell.style.gridColumn = col + 1;
 
-        Object.keys(pieces).forEach(k => {
-            pieces[k].className = `piece ${k[0] === 'p' ? 'player' : 'ai'}`;
-            pieces[k].innerText = k[0] === 'p' ? '🧋' : ' Pineapple 🍍';
-            pieces[k].innerText = k[0] === 'p' ? '🧋' : '🍍';
-            document.body.appendChild(pieces[k]);
-        });
+                if (i === 0) cell.innerHTML = "起點";
+                else if (i === totalCells - 1) cell.innerHTML = "🏁 玉山";
+                else if (specialCells[i]) {
+                    cell.classList.add(specialCells[i].type);
+                    cell.innerHTML = `<b>${specialCells[i].label}</b>`;
+                } else if (i % 5 === 0) {
+                    const food = foods[Math.floor(Math.random() * foods.length)];
+                    cell.innerHTML = `🍰<br>${food.name}`;
+                    cell.dataset.foodIdx = foods.indexOf(food);
+                    cell.classList.add('special');
+                } else {
+                    cell.innerHTML = i;
+                }
+                cell.id = `cell-${i}`;
+                wrapper.appendChild(cell);
+            }
 
-        function startGame() {
-            document.getElementById('rule-modal').style.display = 'none';
-            document.getElementById('roll-btn').disabled = false;
-            document.getElementById('status').innerText = "你的回合，請擲骰子";
-            updatePositions();
+            // 初始化棋子
+            players.forEach(p => {
+                const div = document.createElement('div');
+                div.className = 'piece';
+                div.id = `player-${p.id}`;
+                div.innerHTML = p.emoji;
+                document.body.appendChild(div);
+            });
+            updateUI();
         }
 
-        function updatePositions() {
-            const homes = { p: document.getElementById('player-home'), a: document.getElementById('ai-home') };
+        function updateUI() {
+            players.forEach(p => {
+                const cell = document.getElementById(`cell-${p.pos}`);
+                const rect = cell.getBoundingClientRect();
+                const el = document.getElementById(`player-${p.id}`);
+                el.style.left = `${rect.left + (p.id === 1 ? 5 : 20)}px`;
+                el.style.top = `${rect.top + (p.id === 1 ? 5 : 20)}px`;
+            });
+            const cp = players[currentPlayerIdx];
+            document.getElementById('status-bar').innerText = `輪到玩家 ${cp.emoji} 擲骰子`;
+        }
+
+        async function rollDice() {
+            if (isMoving) return;
+            isMoving = true;
+            document.getElementById('dice-btn').disabled = true;
+
+            const roll = Math.floor(Math.random() * 6) + 1;
+            document.getElementById('dice-display').innerText = ['🎲','⚀','⚁','⚂','⚃','⚄','⚅'][roll];
             
-            [0, 1].forEach(i => {
-                setPos(pieces[`p${i}`], gameState.player[i], i, homes.p);
-                setPos(pieces[`a${i}`], gameState.ai[i], i, homes.a);
+            await movePlayer(currentPlayerIdx, roll);
+        }
+
+        async function movePlayer(pIdx, steps) {
+            let p = players[pIdx];
+            for (let i = 0; i < steps; i++) {
+                if (p.pos < totalCells - 1) {
+                    p.pos++;
+                    updateUI();
+                    await new Promise(r => setTimeout(r, 400));
+                }
+            }
+
+            // 檢查特殊格子
+            const currentCell = document.getElementById(`cell-${p.pos}`);
+            
+            // 1. 檢查美食題目
+            if (currentCell.dataset.foodIdx !== undefined) {
+                await startQuiz(pIdx, currentCell.dataset.foodIdx);
+            } 
+            // 2. 檢查蛇梯
+            else if (specialCells[p.pos]) {
+                const effect = specialCells[p.pos];
+                document.getElementById('status-bar').innerText = effect.label;
+                await new Promise(r => setTimeout(r, 800));
+                p.pos = effect.target;
+                updateUI();
+            }
+
+            if (p.pos >= totalCells - 1) {
+                alert(`🎉 恭喜玩家 ${p.emoji} 成功登頂玉山！`);
+                location.reload();
+            } else {
+                currentPlayerIdx = (currentPlayerIdx + 1) % players.length;
+                isMoving = false;
+                document.getElementById('dice-btn').disabled = false;
+                updateUI();
+            }
+        }
+
+        function startQuiz(pIdx, foodIdx) {
+            return new Promise(resolve => {
+                const food = foods[foodIdx];
+                const overlay = document.getElementById('modal-overlay');
+                const optionsDiv = document.getElementById('quiz-options');
+                
+                document.getElementById('quiz-food').innerText = food.name;
+                optionsDiv.innerHTML = '';
+                overlay.style.display = 'flex';
+
+                food.options.forEach(opt => {
+                    const btn = document.createElement('button');
+                    btn.className = 'option-btn';
+                    btn.innerText = opt;
+                    btn.onclick = () => {
+                        if (opt === food.pinyin) {
+                            alert("✅ 太棒了！答對了！");
+                        } else {
+                            alert(`❌ 答錯了，正確拼音是 ${food.pinyin}。退後兩格！`);
+                            players[pIdx].pos = Math.max(0, players[pIdx].pos - 2);
+                        }
+                        overlay.style.display = 'none';
+                        updateUI();
+                        resolve();
+                    };
+                    optionsDiv.appendChild(btn);
+                });
             });
         }
 
-        function setPos(el, posIdx, offset, homeEl) {
-            if (posIdx === -1) {
-                const rect = homeEl.getBoundingClientRect();
-                el.style.left = `${rect.left + 80 + (offset * 40)}px`;
-                el.style.top = `${rect.top + 10}px`;
-            } else {
-                const cell = document.getElementById(`cell-${posIdx % 12}`);
-                const rect = cell.getBoundingClientRect();
-                el.style.left = `${rect.left + 15 + (offset * 10)}px`;
-                el.style.top = `${rect.top + 15}px`;
-            }
-        }
-
-        async function movePiece(type, idx, steps) {
-            for (let s = 0; s < steps; s++) {
-                if (gameState[type][idx] === -1) gameState[type][idx] = 0;
-                else gameState[type][idx]++;
-
-                if (gameState[type][idx] >= 12) {
-                    updatePositions();
-                    setTimeout(() => { alert(type === 'player' ? "🏆 你贏了！台灣環島王！" : "💻 電腦贏了！下次再努力！"); location.reload(); }, 500);
-                    return false;
-                }
-                updatePositions();
-                await new Promise(r => setTimeout(r, 300));
-            }
-
-            // 檢查高鐵
-            const finalPos = gameState[type][idx];
-            if (cities[finalPos].thsr) {
-                document.getElementById('status').innerText = "🚄 高鐵加速！前進3格！";
-                await new Promise(r => setTimeout(r, 600));
-                return await movePiece(type, idx, 3);
-            }
-
-            // 檢查踢人
-            const opp = type === 'player' ? 'ai' : 'player';
-            gameState[opp] = gameState[opp].map(p => (p === finalPos ? -1 : p));
-            updatePositions();
-            return true;
-        }
-
-        async function playerTurn() {
-            if (gameState.isMoving) return;
-            gameState.isMoving = true;
-            document.getElementById('roll-btn').disabled = true;
-
-            const roll = Math.floor(Math.random() * 6) + 1;
-            document.getElementById('dice-result').innerText = ['🎲','⚀','⚁','⚂','⚃','⚄','⚅'][roll];
-            
-            // 優先移動最前面的棋子
-            const pIdx = gameState.player[0] >= gameState.player[1] ? 0 : 1;
-            const cont = await movePiece('player', pIdx, roll);
-            
-            if (cont) setTimeout(aiTurn, 1000);
-        }
-
-        async function aiTurn() {
-            document.getElementById('status').innerText = "🤖 電腦擲骰中...";
-            const roll = Math.floor(Math.random() * 6) + 1;
-            document.getElementById('dice-result').innerText = ['🎲','⚀','⚁','⚂','⚃','⚄','⚅'][roll];
-            
-            const aIdx = gameState.ai[0] >= gameState.ai[1] ? 0 : 1;
-            await movePiece('ai', aIdx, roll);
-
-            document.getElementById('status').innerText = "換你了！";
-            gameState.isMoving = false;
-            document.getElementById('roll-btn').disabled = false;
-        }
-
-        window.onresize = updatePositions;
+        // 產生 QR Code
+        window.onload = () => {
+            initBoard();
+            new QRCode(document.getElementById("qrcode"), {
+                text: window.location.href,
+                width: 80,
+                height: 80
+            });
+        };
     </script>
 </body>
 </html>

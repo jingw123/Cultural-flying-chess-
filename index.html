@@ -3,91 +3,167 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>大學面試錄取挑戰賽 - 專業語音版</title>
+    <title>大學面試：多重關主挑戰賽</title>
     <style>
-        :root { --navy: #101820; --accent: #2c3e50; --gold: #c5a059; --white: #ffffff; }
-        body {
-            font-family: "PingFang TC", "Microsoft JhengHei", sans-serif;
-            background-color: #050505; color: var(--white);
-            display: flex; flex-direction: column; align-items: center;
-            margin: 0; padding: 20px; min-height: 100vh;
-        }
-        #interview-room {
-            width: 100%; max-width: 650px; background: var(--navy);
-            border: 2px solid #333; border-radius: 12px; overflow: hidden;
-            position: relative; box-shadow: 0 30px 60px rgba(0,0,0,0.8);
-        }
-        #timer-bar-container { width: 100%; height: 6px; background: #111; }
-        #timer-bar { width: 100%; height: 100%; background: #e74c3c; transition: width 0.1s linear; }
+        :root { --深藍: #0f172a; --金: #fbbf24; --白: #ffffff; --背景: #020617; --紅: #ef4444; }
+        body { background: var(--背景); color: var(--白); font-family: "Microsoft JhengHei", sans-serif; display: flex; flex-direction: column; align-items: center; padding: 20px; margin: 0; min-height: 100vh; }
+        #容器 { width: 100%; max-width: 550px; background: var(--深藍); border-radius: 20px; overflow: hidden; position: relative; box-shadow: 0 25px 50px rgba(0,0,0,0.8); border: 1px solid #1e293b; }
+        #計時外框 { width: 100%; height: 12px; background: #000; }
+        #計時條 { width: 100%; height: 100%; background: #22c55e; transition: width 0.1s linear; }
+        .緊急 { animation: blink 0.5s infinite; background: var(--紅) !important; }
+        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
 
-        #professor-area {
-            height: 280px; background: radial-gradient(circle, #2c3e50 0%, #101820 100%);
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            border-bottom: 1px solid #333;
-        }
-        #professor-avatar { font-size: 100px; filter: drop-shadow(0 0 10px rgba(255,255,255,0.2)); }
-        #speech-bubble {
-            background: rgba(255,255,255,0.95); color: #1a1a1a; padding: 18px 25px;
-            width: 85%; border-radius: 5px; margin: 15px auto;
-            font-weight: 500; line-height: 1.6; font-size: 17px; box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-        }
+        #面試官區 { height: 280px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: radial-gradient(circle, #1e293b 0%, #0f172a 100%); padding: 20px; text-align: center; }
+        #角色頭像 { font-size: 80px; margin-bottom: 10px; transition: transform 0.2s; }
+        #角色名稱 { color: var(--金); font-size: 14px; font-weight: bold; margin-bottom: 5px; }
+        #對話框 { background: white; color: #111; padding: 15px 20px; width: 85%; border-radius: 12px; font-weight: bold; line-height: 1.6; font-size: 17px; position: relative; }
 
-        #options-area { padding: 25px; background: #fdfdfd; display: flex; flex-direction: column; gap: 12px; min-height: 250px; }
-        .option-btn {
-            background: white; border: 1.5px solid #d1d1d1; padding: 14px 20px;
-            border-radius: 4px; cursor: pointer; color: #2c3e50; font-size: 15px;
-            text-align: left; transition: all 0.2s ease;
-        }
-        .option-btn:hover { border-color: var(--gold); background: #f9f6f0; transform: translateX(5px); }
+        #選項區 { padding: 25px; background: #f8fafc; display: flex; flex-direction: column; gap: 12px; }
+        .按鈕 { background: white; border: 2px solid #e2e8f0; padding: 16px; border-radius: 10px; cursor: pointer; text-align: left; font-size: 15px; color: #1e293b; transition: 0.3s; font-weight: 500; }
+        .按鈕:hover { border-color: var(--金); background: #fffbeb; transform: translateY(-2px); }
 
-        #result-overlay {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(16, 24, 32, 0.96); display: none;
-            flex-direction: column; align-items: center; justify-content: center; z-index: 100;
-        }
-        #grade-display { font-size: 100px; font-weight: 900; letter-spacing: -5px; margin-bottom: 5px; }
-        #feedback-text { font-size: 18px; margin-bottom: 25px; text-align: center; max-width: 80%; line-height: 1.5; color: #ccc; }
-        
-        button#next-btn {
-            background: var(--gold); color: white; border: none; padding: 12px 40px;
-            font-size: 18px; border-radius: 2px; cursor: pointer; letter-spacing: 2px;
-        }
-        .status-info { margin-top: 15px; font-size: 14px; color: #888; }
+        #結果層 { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 100; text-align: center; }
+        #等第 { font-size: 90px; font-weight: 900; color: var(--金); }
+        #回饋語 { padding: 20px 40px; font-size: 16px; color: #cbd5e1; }
+        .主按鈕 { background: var(--金); color: #000; border: none; padding: 12px 40px; font-size: 18px; border-radius: 8px; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <h2 style="color: var(--gold); font-weight: 300; letter-spacing: 5px;">UNIVERSITY INTERVIEW</h2>
+    <h2 style="letter-spacing: 5px; color: var(--金);">🎓 面試特訓教練</h2>
     
-    <div id="interview-room">
-        <div id="timer-bar-container"><div id="timer-bar"></div></div>
-        <div id="professor-area">
-            <div id="professor-avatar">👨‍🏫</div>
-            <div id="speech-bubble">您好，歡迎參加面試。請點擊按鈕開始。</div>
+    <div id="容器">
+        <div id="計時外框"><div id="計時條"></div></div>
+        <div id="面試官區">
+            <div id="角色頭像">👋</div>
+            <div id="角色名稱">點擊開始</div>
+            <div id="對話框">歡迎來到面試特訓系統。</div>
         </div>
-        <div id="options-area">
-            <button class="option-btn" onclick="startGame()">[ 點擊進入面試現場 ]</button>
+        <div id="選項區">
+            <button class="按鈕" onclick="遊戲開始()">【 隨機安排面試官 】</button>
         </div>
-        <div id="result-overlay">
-            <div id="grade-display">A+</div>
-            <div id="feedback-text">評語</div>
-            <button id="next-btn" onclick="nextQuestion()">繼續下一題</button>
+        
+        <div id="結果層">
+            <div id="等第">A+</div>
+            <div id="回饋語">回饋內容</div>
+            <button class="主按鈕" onclick="下一題()">繼續</button>
         </div>
     </div>
 
-    <div class="status-info">目前累積點數：<span id="score">0</span> | 語音速率：0.7x</div>
-
     <script>
-        const quizBank = [
-            {
-                q: "請先簡單介紹你自己，並說說看你申請本系的動機是什麼？",
-                options: [
-                    { t: "我對貴系的課程架構有深入研究，希望能結合我的外語優勢，在跨國經貿領域發展。", score: 3, level: "A", msg: "展現了明確的目標與研究，非常好。" },
-                    { t: "因為這間大學很有名，我父母也希望我能考上這裡，所以我會努力學習。", score: 2, level: "B", msg: "動機略顯被動，建議強調個人自發性的熱情。" },
-                    { t: "我從小就對這個有興趣，覺得學這個以後應該可以賺很多錢。", score: 1, level: "F", msg: "回答過於直白且缺乏深度，面試官不喜歡太功利的回答。" }
-                ]
-            },
-            {
-                q: "如果你在團隊合作中遇到隊友「搭便車」不負責任，你會如何溝通？",
-                options: [
-                    { t: "我會先私下了解對方的困難，並嘗試將任務
+        const 面試官庫 = [
+            { 名稱: "林教授 (和藹)", 頭像: "👴", 語速: 0.7, 嚴格度: 0.8, 簡述: "語氣溫柔，重視學生的熱情與誠實。" },
+            { 名稱: "張主任 (嚴厲)", 頭像: "👩‍💼", 語速: 1.0, 嚴格度: 1.2, 簡述: "節奏快速，對回答的專業度要求極高。" },
+            { 名稱: "王總裁 (業界)", 頭像: "🤵", 語速: 0.9, 嚴格度: 1.0, 簡述: "講究效率與實務，不喜歡太花俏的客套話。" }
+        ];
+
+        const 題目庫 = [
+            { 問: "請說明為什麼我們應該錄取你？", 選: [
+                { t: "我有很強的團隊協作能力，且對專業知識有極大的熱忱。", s: "A", c: "表現得很穩重。", f: "好回答！強調特質確實能給面試官留下印象。" },
+                { t: "因為這是一個很好的機會，我也想證明自己的實力。", s: "B", c: "稍微普通了點。", f: "雖然沒錯，但如果能多說說自己的優點會更好。" },
+                { t: "我覺得我沒什麼競爭對手，我就是最優秀的。", s: "F", c: "太自大了！", f: "面試官最忌諱自負的考生，要注意語氣。" }
+            ]},
+            { 問: "如果你跟組員吵架影響進度，你會怎麼辦？", 選: [
+                { t: "我會先冷靜下來，找出意見分歧點，主動找對方溝通解決。", s: "A", c: "處理得很好。", f: "在面試中展示「主動解決衝突」是非常加分的。" },
+                { t: "我會交給其他人來協調，或是請老師幫忙處理。", s: "B", c: "有點消極。", f: "這顯示你依賴他人，建議練習自主溝通。" },
+                { t: "這通常是別人的問題，我會堅持我是對的。", s: "F", c: "完全不行！", f: "缺乏團隊精神是大忌，要學會妥協與包容。" }
+            ]}
+            // (此處省略中間題，實際可擴充至10題)
+        ];
+
+        let 目前索引 = 0, 目前官 = null, 總得分 = 0, 題數 = 2, 快慢計 = [], 遊戲計時器, 剩餘時間 = 15;
+
+        function 朗讀(文字) {
+            window.speechSynthesis.cancel();
+            const 語音 = new SpeechSynthesisUtterance(文字);
+            語音.lang = 'zh-TW'; 語音.rate = 目前官.語速;
+            window.speechSynthesis.speak(語音);
+        }
+
+        function 遊戲開始() {
+            目前官 = 面試官庫[Math.floor(Math.random() * 面試官庫.length)];
+            目前索引 = 0; 總得分 = 0; 快慢計 = [];
+            document.getElementById('角色名稱').innerText = "當前考官：" + 目前官.名稱;
+            document.getElementById('角色頭像').innerText = 目前官.頭像;
+            顯示題目();
+        }
+
+        function 顯示題目() {
+            const 題目 = 題目庫[目前索引];
+            document.getElementById('對話框').innerText = 題目.問;
+            document.getElementById('結果層').style.display = 'none';
+            朗讀(題目.問);
+
+            const 選項區 = document.getElementById('選項區');
+            選項區.innerHTML = '';
+            題目.選.forEach(x => {
+                const b = document.createElement('button');
+                b.className = '按鈕';
+                b.innerText = x.t;
+                b.onclick = () => 處理回答(x);
+                選項區.appendChild(b);
+            });
+            啟動計時();
+        }
+
+        function 啟動計時() {
+            剩餘時間 = 15; 
+            const 條 = document.getElementById('計時條');
+            條.classList.remove('緊急');
+            clearInterval(遊戲計時器);
+            const 開始時間 = Date.now();
+            遊戲計時器 = setInterval(() => {
+                剩餘時間 -= 0.1;
+                條.style.width = (剩餘時間 / 15 * 100) + '%';
+                if (剩餘時間 <= 5) 條.classList.add('緊急');
+                if (剩餘時間 <= 0) { clearInterval(遊戲計時器); 處理回答({s:'F', c:'逾時！', f:'面試官不等人。'}); }
+            }, 100);
+            目前計時 = 開始時間;
+        }
+
+        function 處理回答(選) {
+            clearInterval(遊戲計時器);
+            const 耗時 = (Date.now() - 目前計時) / 1000;
+            快慢計.push(耗時);
+            
+            let 等第 = 選.s;
+            let 分 = 0;
+            if(等第==='A') 分 = 耗時 < 7 ? 100 : 80;
+            else if(等第==='B') 分 = 60;
+            
+            // 根據考官嚴格度調整得分
+            分 = Math.round(分 / 目前官.嚴格度);
+            總得分 += 分;
+
+            document.getElementById('等第').innerText = 等第;
+            document.getElementById('回饋語').innerText = 選.f;
+            document.getElementById('結果層').style.display = 'flex';
+            朗讀(`評價：${選.c}。${選.f}`);
+        }
+
+        function 下一題() {
+            目前索引++;
+            if (目前索引 < 題數) 顯示題目();
+            else 結算報告();
+        }
+
+        function 結算報告() {
+            const 平均反應 = (快慢計.reduce((a,b)=>a+b,0) / 題數).toFixed(1);
+            let 評價 = 總得分 > 150 ? "🎉 正取" : (總得分 > 100 ? "🤔 備取" : "❌ 未錄取");
+            
+            let 建議 = `【面試分析報告】<br>
+                        平均反應時間：${平均反應} 秒<br>
+                        考官對你的印象：${目前官.簡述}<br><br>
+                        針對你的表現：${平均反應 < 6 ? '你反應很快，但要注意內容深度。' : '你思考很穩，但要注意面試官的節奏。'}<br>
+                        建議繼續練習如何應付「${目前官.名稱}」這種風格的關主。`;
+
+            document.getElementById('結果層').innerHTML = `
+                <h2 style="color:var(--金)">${評價}</h2>
+                <div id="回饋語">${建議}</div>
+                <button class="主按鈕" onclick="location.reload()">更換面試官再次特訓</button>
+            `;
+            朗讀(`面試結束。你的結果是：${評價}。請查看分析報告。`);
+        }
+    </script>
+</body>
+</html>

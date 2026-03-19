@@ -3,219 +3,91 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>大學面試錄取挑戰賽</title>
+    <title>大學面試錄取挑戰賽 - 專業語音版</title>
     <style>
-        :root {
-            --navy: #1a237e;
-            --gold: #fbc02d;
-            --white: #ffffff;
-            --gray: #f5f5f5;
-            --success: #2e7d32;
-        }
+        :root { --navy: #101820; --accent: #2c3e50; --gold: #c5a059; --white: #ffffff; }
         body {
-            font-family: "Microsoft JhengHei", sans-serif;
-            background-color: #0d1117;
-            color: var(--white);
+            font-family: "PingFang TC", "Microsoft JhengHei", sans-serif;
+            background-color: #050505; color: var(--white);
             display: flex; flex-direction: column; align-items: center;
             margin: 0; padding: 20px; min-height: 100vh;
         }
-        /* 面試視窗 */
         #interview-room {
-            width: 100%; max-width: 600px;
-            background: var(--navy); border: 4px solid #30363d;
-            border-radius: 15px; overflow: hidden; position: relative;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            width: 100%; max-width: 650px; background: var(--navy);
+            border: 2px solid #333; border-radius: 12px; overflow: hidden;
+            position: relative; box-shadow: 0 30px 60px rgba(0,0,0,0.8);
         }
-        /* 教授區域 */
+        #timer-bar-container { width: 100%; height: 6px; background: #111; }
+        #timer-bar { width: 100%; height: 100%; background: #e74c3c; transition: width 0.1s linear; }
+
         #professor-area {
-            height: 250px; background: linear-gradient(transparent, rgba(0,0,0,0.5)), #283593;
+            height: 280px; background: radial-gradient(circle, #2c3e50 0%, #101820 100%);
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            position: relative;
+            border-bottom: 1px solid #333;
         }
-        #professor-avatar { font-size: 80px; margin-bottom: 10px; }
-        #professor-name { background: rgba(0,0,0,0.6); padding: 5px 15px; border-radius: 20px; font-size: 14px; }
-        
-        /* 題目對話框 */
+        #professor-avatar { font-size: 100px; filter: drop-shadow(0 0 10px rgba(255,255,255,0.2)); }
         #speech-bubble {
-            background: var(--white); color: #333; padding: 15px;
-            width: 80%; border-radius: 10px; margin: 15px auto;
-            font-weight: bold; min-height: 50px; position: relative;
+            background: rgba(255,255,255,0.95); color: #1a1a1a; padding: 18px 25px;
+            width: 85%; border-radius: 5px; margin: 15px auto;
+            font-weight: 500; line-height: 1.6; font-size: 17px; box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         }
-        /* 倒數計時條 */
-        #timer-bar-container { width: 100%; height: 8px; background: #1b212c; }
-        #timer-bar { width: 100%; height: 100%; background: var(--gold); transition: width 0.1s linear; }
 
-        /* 選項區 */
-        #options-area { padding: 20px; background: var(--gray); display: flex; flex-direction: column; gap: 10px; }
+        #options-area { padding: 25px; background: #fdfdfd; display: flex; flex-direction: column; gap: 12px; min-height: 250px; }
         .option-btn {
-            background: white; border: 2px solid #ddd; padding: 12px 20px;
-            border-radius: 8px; cursor: pointer; color: #333; font-size: 16px;
-            text-align: left; transition: 0.2s;
+            background: white; border: 1.5px solid #d1d1d1; padding: 14px 20px;
+            border-radius: 4px; cursor: pointer; color: #2c3e50; font-size: 15px;
+            text-align: left; transition: all 0.2s ease;
         }
-        .option-btn:hover { border-color: var(--navy); background: #e8eaf6; }
+        .option-btn:hover { border-color: var(--gold); background: #f9f6f0; transform: translateX(5px); }
 
-        /* 評等顯示 */
         #result-overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85); display: none;
+            background: rgba(16, 24, 32, 0.96); display: none;
             flex-direction: column; align-items: center; justify-content: center; z-index: 100;
         }
-        #grade-display { font-size: 80px; font-weight: bold; margin-bottom: 10px; }
-        #feedback-text { font-size: 18px; margin-bottom: 20px; text-align: center; padding: 0 20px; }
+        #grade-display { font-size: 100px; font-weight: 900; letter-spacing: -5px; margin-bottom: 5px; }
+        #feedback-text { font-size: 18px; margin-bottom: 25px; text-align: center; max-width: 80%; line-height: 1.5; color: #ccc; }
         
         button#next-btn {
-            background: var(--gold); border: none; padding: 10px 30px;
-            font-size: 18px; border-radius: 5px; cursor: pointer; font-weight: bold;
+            background: var(--gold); color: white; border: none; padding: 12px 40px;
+            font-size: 18px; border-radius: 2px; cursor: pointer; letter-spacing: 2px;
         }
-
-        .score-board { margin-top: 20px; font-size: 18px; color: var(--gold); }
+        .status-info { margin-top: 15px; font-size: 14px; color: #888; }
     </style>
 </head>
 <body>
 
-    <h2 style="letter-spacing: 2px;">🎓 大學面試錄取挑戰賽</h2>
+    <h2 style="color: var(--gold); font-weight: 300; letter-spacing: 5px;">UNIVERSITY INTERVIEW</h2>
     
     <div id="interview-room">
         <div id="timer-bar-container"><div id="timer-bar"></div></div>
-
         <div id="professor-area">
             <div id="professor-avatar">👨‍🏫</div>
-            <div id="professor-name">首席面試官：張教授</div>
-            <div id="speech-bubble">準備好了嗎？請點擊下方開始面試。</div>
+            <div id="speech-bubble">您好，歡迎參加面試。請點擊按鈕開始。</div>
         </div>
-
         <div id="options-area">
-            <button class="option-btn" onclick="startGame()">我準備好了，教授您好。</button>
+            <button class="option-btn" onclick="startGame()">[ 點擊進入面試現場 ]</button>
         </div>
-
         <div id="result-overlay">
             <div id="grade-display">A+</div>
-            <div id="feedback-text">評語內容</div>
+            <div id="feedback-text">評語</div>
             <button id="next-btn" onclick="nextQuestion()">繼續下一題</button>
         </div>
     </div>
 
-    <div class="score-board">當前總積分：<span id="total-score">0</span></div>
+    <div class="status-info">目前累積點數：<span id="score">0</span> | 語音速率：0.7x</div>
 
     <script>
         const quizBank = [
             {
-                q: "請先簡單介紹你自己，為什麼想申請本系？",
+                q: "請先簡單介紹你自己，並說說看你申請本系的動機是什麼？",
                 options: [
-                    { t: "我從小就很喜歡這個領域，希望能進入貴校深造，提升專業能力。", score: 3, level: "專業" },
-                    { t: "因為我的分數剛好到這裡，而且聽說貴校的名聲很好。", score: 1, level: "不專業" },
-                    { t: "我覺得貴系很有趣，希望能跟教授學習更多知識。", score: 2, level: "普通" }
+                    { t: "我對貴系的課程架構有深入研究，希望能結合我的外語優勢，在跨國經貿領域發展。", score: 3, level: "A", msg: "展現了明確的目標與研究，非常好。" },
+                    { t: "因為這間大學很有名，我父母也希望我能考上這裡，所以我會努力學習。", score: 2, level: "B", msg: "動機略顯被動，建議強調個人自發性的熱情。" },
+                    { t: "我從小就對這個有興趣，覺得學這個以後應該可以賺很多錢。", score: 1, level: "F", msg: "回答過於直白且缺乏深度，面試官不喜歡太功利的回答。" }
                 ]
             },
             {
-                q: "如果你在團體合作中遇到意見不合，你會如何處理？",
+                q: "如果你在團隊合作中遇到隊友「搭便車」不負責任，你會如何溝通？",
                 options: [
-                    { t: "我會先聆聽大家的看法，尋找共同點，並理性討論最合適的方案。", score: 3, level: "專業" },
-                    { t: "我會堅持自己的想法，因為我對自己的判斷有信心。", score: 1, level: "不專業" },
-                    { t: "我會請老師來決定，這樣比較公平。", score: 2, level: "普通" }
-                ]
-            },
-            {
-                q: "在未來的學習計畫中，你最想克服的挑戰是什麼？",
-                options: [
-                    { t: "我希望透過專題研究，將理論與實務結合，解決複雜的產業問題。", score: 3, level: "專業" },
-                    { t: "我希望學分都能過，不要被當掉就好。", score: 1, level: "不專業" },
-                    { t: "我希望能多參加社團，交到更多志同道合的朋友。", score: 2, level: "普通" }
-                ]
-            }
-        ];
-
-        let currentIdx = 0;
-        let score = 0;
-        let timer;
-        let startTime;
-        let timeLeft = 15;
-
-        function startGame() {
-            currentIdx = 0;
-            score = 0;
-            updateScore();
-            showQuestion();
-        }
-
-        function showQuestion() {
-            const quiz = quizBank[currentIdx];
-            document.getElementById('speech-bubble').innerText = quiz.q;
-            document.getElementById('result-overlay').style.display = 'none';
-            
-            const area = document.getElementById('options-area');
-            area.innerHTML = '';
-            
-            quiz.options.sort(() => Math.random() - 0.5).forEach(opt => {
-                const btn = document.createElement('button');
-                btn.className = 'option-btn';
-                btn.innerText = opt.t;
-                btn.onclick = () => handleAnswer(opt);
-                area.appendChild(btn);
-            });
-
-            startTimer();
-        }
-
-        function startTimer() {
-            timeLeft = 15;
-            startTime = Date.now();
-            const bar = document.getElementById('timer-bar');
-            
-            clearInterval(timer);
-            timer = setInterval(() => {
-                timeLeft -= 0.1;
-                bar.style.width = (timeLeft / 15 * 100) + '%';
-                
-                if (timeLeft <= 0) {
-                    clearInterval(timer);
-                    handleAnswer({ score: 0, level: "逾時" });
-                }
-            }, 100);
-        }
-
-        function handleAnswer(opt) {
-            clearInterval(timer);
-            const responseTime = (Date.now() - startTime) / 1000;
-            let grade = '';
-            let feedback = '';
-            
-            if (opt.level === "專業") {
-                if (responseTime < 7) { grade = 'A+'; feedback = '反應靈敏且專業，令我印象深刻！'; score += 50; }
-                else { grade = 'A'; feedback = '回答很成熟，但反應速度可以再快一點。'; score += 40; }
-            } else if (opt.level === "普通") {
-                grade = 'B+'; feedback = '回答中規中矩，建議加入更多專業術語。'; score += 20;
-            } else if (opt.level === "逾時") {
-                grade = 'F'; feedback = '面試中保持沉默是大忌，請注意時間分配。';
-            } else {
-                grade = 'F'; feedback = '這個回答不夠專業，可能無法展現你的入學動機。';
-            }
-
-            document.getElementById('grade-display').innerText = grade;
-            document.getElementById('grade-display').style.color = (grade === 'F') ? '#ff5252' : '#69f0ae';
-            document.getElementById('feedback-text').innerText = feedback;
-            document.getElementById('result-overlay').style.display = 'flex';
-            
-            updateScore();
-        }
-
-        function updateScore() {
-            document.getElementById('total-score').innerText = score;
-        }
-
-        function nextQuestion() {
-            currentIdx++;
-            if (currentIdx < quizBank.length) {
-                showQuestion();
-            } else {
-                document.getElementById('speech-bubble').innerText = "面試結束，我們會再通知你結果！";
-                document.getElementById('result-overlay').innerHTML = `
-                    <h2 style="color:var(--gold)">最終面試成績：${score}</h2>
-                    <button id="next-btn" onclick="location.reload()">重新挑戰</button>
-                `;
-                document.getElementById('result-overlay').style.display = 'flex';
-            }
-        }
-    </script>
-</body>
-</html>
+                    { t: "我會先私下了解對方的困難，並嘗試將任務

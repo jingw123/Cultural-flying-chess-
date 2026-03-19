@@ -3,47 +3,105 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>台南校外教學：36格文化大冒險</title>
+    <title>台南校外教學：文化大冒險</title>
     <style>
         :root {
             --bg: #faf3e0;
-            --land: #f5f5f5;
-            --primary: #8d6e63;
+            --tainan-red: #b71c1c;
             --ladder: #f1c40f;
             --snake: #e74c3c;
-            --tainan-red: #b71c1c;
         }
-        body { font-family: "Microsoft JhengHei", cursive, sans-serif; background: var(--bg); display: flex; flex-direction: column; align-items: center; padding: 10px; margin: 0; }
+        body { 
+            font-family: "Microsoft JhengHei", sans-serif; 
+            background: var(--bg); 
+            display: flex; flex-direction: column; align-items: center; 
+            margin: 0; padding: 10px; min-height: 100vh;
+        }
+        h2 { color: var(--tainan-red); margin: 10px 0; text-shadow: 1px 1px white; }
         
+        .role-select { margin-bottom: 10px; background: white; padding: 8px 15px; border-radius: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        
+        /* 遊戲盤主容器 */
+        #board-container {
+            position: relative; 
+            width: 350px; height: 500px;
+            background: #fff; border: 8px solid var(--tainan-red); border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        /* 網格佈局 */
         #game-board {
-            position: relative; width: 360px; height: 550px;
-            background: #fff; border: 10px solid var(--tainan-red); border-radius: 15px;
-            display: grid; grid-template-columns: repeat(6, 1fr); grid-template-rows: repeat(6, 1fr);
-            gap: 4px; padding: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            display: grid; 
+            grid-template-columns: repeat(6, 1fr); 
+            grid-template-rows: repeat(6, 1fr);
+            gap: 4px; padding: 8px; width: 100%; height: 100%; box-sizing: border-box;
         }
 
         .cell {
-            background: white; border: 1px solid #ddd; border-radius: 4px;
+            background: #fff; border: 1px solid #eee; border-radius: 4px;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
-            font-size: 10px; font-weight: bold; z-index: 10; text-align: center; color: #333;
+            font-size: 10px; font-weight: bold; text-align: center; color: #444;
+            position: relative; transition: background 0.3s;
         }
         .cell.start { background: #ff7675; color: white; }
-        .cell.end { background: var(--tainan-red); color: gold; border: 3px double gold; font-size: 14px; }
-        .cell.special { background: #fff9c4; }
+        .cell.end { background: var(--tainan-red); color: gold; border: 2px double gold; }
 
-        #svg-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; }
-
-        .piece {
-            width: 45px; height: 45px; position: absolute;
-            transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            z-index: 100; font-size: 32px; display: flex; justify-content: center; align-items: center;
-            filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.2));
+        /* SVG 連線層 */
+        #svg-layer {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 5;
         }
 
+        /* 棋子 */
+        #player-token {
+            width: 40px; height: 40px; position: absolute;
+            transition: all 0.5s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+            z-index: 100; font-size: 30px; display: flex; justify-content: center; align-items: center;
+            filter: drop-shadow(2px 2px 3px rgba(0,0,0,0.3));
+            pointer-events: none;
+        }
+
+        /* 彈窗 */
         #modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 1000;
         }
-        .quiz-box { background: white; padding: 25px; border-radius: 20px; width: 85%; max-width: 340px; text-align: center; border: 5px solid var(--tainan-red); }
-        .opt { display: block; width: 100%; padding: 12px; margin: 8px 0; border: 2px solid #ddd; border-radius: 10px; font-size: 16px; cursor: pointer; text-align: left; }
-        .opt:hover { background: #fff3f3; border-color: var
+        .quiz-box { background: white; padding: 20px; border-radius: 20px; width: 85%; max-width: 320px; border: 5px solid var(--tainan-red); }
+        .opt { display: block; width: 100%; padding: 12px; margin: 8px 0; border: 2px solid #ddd; border-radius: 10px; font-size: 16px; cursor: pointer; text-align: left; background: #fff; }
+        .opt:hover { background: #fff3f3; border-color: var(--tainan-red); }
+
+        .controls { margin-top: 15px; text-align: center; background: white; padding: 15px; border-radius: 20px; width: 320px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        button#roll-btn { background: var(--tainan-red); color: white; border: none; padding: 12px 60px; font-size: 20px; border-radius: 50px; cursor: pointer; box-shadow: 0 4px 0 #7f0000; transition: 0.1s; }
+        button#roll-btn:active { transform: translateY(2px); box-shadow: none; }
+        button#roll-btn:disabled { background: #ccc; box-shadow: none; }
+    </style>
+</head>
+<body>
+
+    <h2>🏛️ 台南校外教學：文化挑戰</h2>
+    
+    <div class="role-select">
+        選擇棋子：
+        <select id="char-select" onchange="document.getElementById('player-token').innerText = this.value">
+            <option value="🩴">🩴 藍白拖鞋</option>
+            <option value="🏮">🏮 文創天燈</option>
+            <option value="🌙">🌙 聖杯擲筊</option>
+        </select>
+    </div>
+
+    <div id="board-container">
+        <svg id="svg-layer"></svg>
+        <div id="game-board"></div>
+        <div id="player-token">🩴</div>
+    </div>
+
+    <div class="controls">
+        <div id="dice-result" style="font-size: 50px; margin-bottom: 5px;">🎲</div>
+        <button id="roll-btn" onclick="play()">擲骰子移動</button>
+        <div id="status" style="font-size: 14px; margin-top: 10px; color: #666;">目標：從車站走到孔廟！</div>
+    </div>
+
+    <div id="modal">
+        <div class="quiz-box">
+            <h3 id="q-title" style="color: var(--tainan-red); margin-top:0;">旅遊考察題目</h3>
+            <p id="q-text" style

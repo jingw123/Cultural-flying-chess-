@@ -3,155 +3,135 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>台南文化大冒險 - 36格完整版</title>
+    <title>台南校外教學：25格精華版</title>
     <style>
-        :root { --bg: #faf3e0; --red: #b71c1c; --ladder: #f1c40f; --snake: #e74c3c; }
+        :root { --red: #b71c1c; --bg: #fff8e1; }
         body { font-family: "Microsoft JhengHei", sans-serif; background: var(--bg); display: flex; flex-direction: column; align-items: center; margin: 0; padding: 10px; }
-        h2 { color: var(--red); margin: 5px 0; }
         
-        #board-container {
-            position: relative; width: 350px; height: 500px;
-            background: #fff; border: 8px solid var(--red); border-radius: 15px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-        }
-
-        #game-board {
-            display: grid; grid-template-columns: repeat(6, 1fr); grid-template-rows: repeat(6, 1fr);
-            width: 100%; height: 100%; gap: 2px; padding: 5px; box-sizing: border-box;
+        /* 縮小盤面，增加穩定性 */
+        #game-container {
+            position: relative; width: 320px; height: 320px;
+            background: white; border: 6px solid var(--red); border-radius: 10px;
+            display: grid; grid-template-columns: repeat(5, 1fr); grid-template-rows: repeat(5, 1fr);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
         }
 
         .cell {
-            background: #fff; border: 1px solid #eee; display: flex; flex-direction: column;
-            justify-content: center; align-items: center; font-size: 10px; font-weight: bold;
-            text-align: center; color: #444; position: relative; z-index: 10;
+            border: 1px solid #ddd; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; font-size: 11px; font-weight: bold;
+            text-align: center; color: #333; height: 62px; width: 62px; box-sizing: border-box;
         }
         .start { background: #ff7675 !important; color: white; }
-        .end { background: var(--red) !important; color: gold; border: 2px double gold; }
+        .end { background: var(--red) !important; color: gold; }
 
-        /* 棋子 */
+        /* 棋子：改用簡單的圓點背影，確保不會遮到字 */
         #player-token {
-            width: 38px; height: 38px; position: absolute; z-index: 100; font-size: 30px;
-            display: flex; justify-content: center; align-items: center; pointer-events: none;
-            transition: all 0.4s ease;
+            width: 35px; height: 35px; position: absolute; z-index: 100;
+            font-size: 26px; display: flex; justify-content: center; align-items: center;
+            transition: all 0.4s ease; pointer-events: none;
+            background: rgba(255,255,255,0.6); border-radius: 50%;
         }
 
-        /* 線條層 */
-        #svg-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; }
-
-        .controls { margin-top: 15px; text-align: center; background: white; padding: 10px; border-radius: 20px; width: 300px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        button#roll-btn { background: var(--red); color: white; border: none; padding: 12px 50px; font-size: 18px; border-radius: 50px; cursor: pointer; font-weight: bold; }
+        .controls { margin-top: 20px; text-align: center; }
+        button { background: var(--red); color: white; border: none; padding: 10px 30px; font-size: 18px; border-radius: 20px; cursor: pointer; }
         
         #modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 1000; }
-        .quiz-box { background: white; padding: 25px; border-radius: 20px; width: 85%; max-width: 320px; border: 5px solid var(--red); text-align: center; }
-        .opt { display: block; width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 10px; cursor: pointer; text-align: left; font-size: 15px; }
+        .quiz-box { background: white; padding: 20px; border-radius: 15px; width: 80%; border: 4px solid var(--red); text-align: center; }
+        .opt { display: block; width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ccc; border-radius: 5px; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <h2>🏛️ 台南校外教學 36格</h2>
+    <h2 style="color:var(--red)">🏛️ 台南文化大冒險 (25格版)</h2>
     
-    <div style="margin-bottom:10px; font-weight: bold;">
-        切換棋子：
-        <select id="char-select" onchange="document.getElementById('player-token').innerText = this.value">
-            <option value="🩴">🩴 藍白拖鞋</option>
-            <option value="🏮">🏮 文創天燈</option>
-            <option value="🌙">🌙 聖杯擲筊</option>
+    <div style="margin-bottom:10px">
+        角色：<select id="char-select" onchange="document.getElementById('player-token').innerText = this.value">
+            <option value="🩴">🩴 藍白拖</option>
+            <option value="🏮">🏮 天燈</option>
+            <option value="🌙">🌙 聖杯</option>
         </select>
     </div>
 
-    <div id="board-container">
-        <svg id="svg-layer"></svg>
-        <div id="game-board">
-            <div class="cell" id="c-30">31<br>安平</div><div class="cell" id="c-31">32<br>德記</div><div class="cell" id="c-32">33<br>樹屋</div><div class="cell" id="c-33">34<br>出張所</div><div class="cell" id="c-34">35<br>觀夕</div><div class="cell end" id="c-35">36<br>孔廟</div>
-            <div class="cell" id="c-29">30<br>兌悅門</div><div class="cell" id="c-28">29<br>蝸牛巷</div><div class="cell" id="c-27">28<br>友愛街</div><div class="cell" id="c-26">27<br>小西門</div><div class="cell" id="c-25">26<br>大南門</div><div class="cell" id="c-24">25<br>南女</div>
-            <div class="cell" id="c-18">19<br>文學館</div><div class="cell" id="c-19">20<br>孔廟區</div><div class="cell" id="c-20">21<br>五妃廟</div><div class="cell" id="c-21">22<br>郡王祠</div><div class="cell" id="c-22">23<br>南高商</div><div class="cell" id="c-23">24<br>家齊</div>
-            <div class="cell" id="c-17">18<br>南美2</div><div class="cell" id="c-16">17<br>南美1</div><div class="cell" id="c-15">16<br>府中街</div><div class="cell" id="c-14">15<br>開山路</div><div class="cell" id="c-13">14<br>成功祠</div><div class="cell" id="c-12">13<br>林百貨</div>
-            <div class="cell" id="c-6">7<br>水仙宮</div><div class="cell" id="c-7">8<br>正興街</div><div class="cell" id="c-8">9<br>國華街</div><div class="cell" id="c-9">10<br>保安路</div><div class="cell" id="c-10">11<br>藍晒圖</div><div class="cell" id="c-11">12<br>司法館</div>
-            <div class="cell start" id="c-0">1<br>車站</div><div class="cell" id="c-1">2<br>成大</div><div class="cell" id="c-2">3<br>赤崁樓</div><div class="cell" id="c-3">4<br>武廟</div><div class="cell" id="c-4">5<br>鴨母寮</div><div class="cell" id="c-5">6<br>神農街</div>
-        </div>
+    <div id="game-container">
+        <div class="cell end" id="c-24">25<br>孔廟</div>
+        <div class="cell" id="c-23">24<br>樹屋</div>
+        <div class="cell" id="c-22">23<br>安平</div>
+        <div class="cell" id="c-21">22<br>觀夕</div>
+        <div class="cell" id="c-20">21<br>兌悅門</div>
+        
+        <div class="cell" id="c-15">16<br>南女</div>
+        <div class="cell" id="c-16">17<br>大南門</div>
+        <div class="cell" id="c-17">18<br>小西門</div>
+        <div class="cell" id="c-18">19<br>蝸牛巷</div>
+        <div class="cell" id="c-19">20<br>友愛街</div>
+        
+        <div class="cell" id="c-14">15<br>南美館</div>
+        <div class="cell" id="c-13">14<br>府中街</div>
+        <div class="cell" id="c-12">13<br>文學館</div>
+        <div class="cell" id="c-11">12<br>林百貨</div>
+        <div class="cell" id="c-10">11<br>藍晒圖</div>
+        
+        <div class="cell" id="c-5">6<br>神農街</div>
+        <div class="cell" id="c-6">7<br>水仙宮</div>
+        <div class="cell" id="c-7">8<br>國華街</div>
+        <div class="cell" id="c-8">9<br>正興街</div>
+        <div class="cell" id="c-9">10<br>保安路</div>
+        
+        <div class="cell start" id="c-0">1<br>車站</div>
+        <div class="cell" id="c-1">2<br>成大</div>
+        <div class="cell" id="c-2">3<br>赤崁樓</div>
+        <div class="cell" id="c-3">4<br>武廟</div>
+        <div class="cell" id="c-4">5<br>鴨母寮</div>
+
         <div id="player-token">🩴</div>
     </div>
 
     <div class="controls">
-        <div id="dice-result" style="font-size: 45px; margin-bottom: 5px;">🎲</div>
-        <button id="roll-btn" onclick="play()">擲骰子移動</button>
-        <p id="status" style="font-size: 13px; color: #666; margin-top: 10px;">目標：從台南火車站出發！</p>
+        <div id="dice-result" style="font-size: 40px;">🎲</div>
+        <button onclick="play()">擲骰子移動</button>
+        <p id="status" style="font-size: 13px; color: #666;">目標：走到終點孔廟！</p>
     </div>
 
     <div id="modal">
         <div class="quiz-box">
-            <h3 id="q-title" style="color:var(--red); margin-top: 0;">🏛️ 文化考察挑戰</h3>
-            <p id="q-text" style="font-weight: bold; font-size: 16px;"></p>
+            <h3 style="color:var(--red); margin:0;">文化挑戰</h3>
+            <p id="q-text" style="font-weight:bold;"></p>
             <div id="q-opts"></div>
         </div>
     </div>
 
     <script>
         let playerPos = 0;
-        let isMoving = false;
-
         const quizBank = [
-            { q: "在台南喝「牛肉湯」時，老闆通常會如何處理牛肉？", a: "溫體牛肉直接淋上熱湯", o: ["溫體牛肉直接淋上熱湯", "牛肉先炸過才放進去", "牛肉滷好後再切片"] },
-            { q: "「全臺首學」這塊石碑代表哪一個重要古蹟？", a: "台南孔廟", o: ["台南孔廟", "赤崁樓", "延平郡王祠"] },
-            { q: "林百貨是台南有名的百貨公司，它最有特色的設施是？", a: "指針式復古電梯", o: ["指針式復古電梯", "露天游泳池", "室內電影院"] },
-            { q: "若在廟裡擲筊出現「一平一凸」，這代表什麼意思？", a: "聖杯 (代表神明同意)", o: ["聖杯 (代表神明同意)", "笑杯 (神明在開玩笑)", "陰杯 (神明不同意)"] },
-            { q: "台南文學館這座美麗的建築，原本在日治時期是什麼功能？", a: "台南州廳 (行政辦公室)", o: ["台南州廳 (行政辦公室)", "台南火車站", "台南監獄"] },
-            { q: "國華街是台南美食的一級戰區，哪樣食物不是台南特色？", a: "太陽餅 (台中產)", o: ["太陽餅 (台中產)", "小卷米粉", "碗粿"] }
+            { q: "台南「牛肉湯」鮮甜的秘密？", a: "溫體牛肉淋高湯", o: ["溫體牛肉淋高湯", "加入煉乳", "牛肉先炸過"] },
+            { q: "「全臺首學」是指哪裡？", a: "台南孔廟", o: ["台南孔廟", "成功大學", "林百貨"] },
+            { q: "擲筊「一平一凸」代表？", a: "聖杯 (同意)", o: ["聖杯 (同意)", "笑杯", "怒杯"] },
+            { q: "台南文學館在日治時期原本是？", a: "台南州廳", o: ["台南州廳", "火車站", "電影院"] }
         ];
-
-        const links = [
-            { start: 2, end: 12, msg: "🛵 機車雙載：赤崁樓直達林百貨！", type: "ladder" },
-            { start: 10, end: 18, msg: "🚲 YouBike：藍晒圖到文學館！", type: "ladder" },
-            { start: 22, end: 5, msg: "🚧 施工繞道：滑回神農街！", type: "snake" },
-            { start: 32, end: 26, msg: "🌊 安平大塞車：滑回小西門！", type: "snake" }
-        ];
-
-        function drawLines() {
-            const svg = document.getElementById('svg-layer');
-            svg.innerHTML = '';
-            const bRect = document.getElementById('board-container').getBoundingClientRect();
-            links.forEach(link => {
-                const s = document.getElementById(`c-${link.start}`).getBoundingClientRect();
-                const e = document.getElementById(`c-${link.end}`).getBoundingClientRect();
-                const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-                line.setAttribute("x1", s.left - bRect.left + s.width/2);
-                line.setAttribute("y1", s.top - bRect.top + s.height/2);
-                line.setAttribute("x2", e.left - bRect.left + e.width/2);
-                line.setAttribute("y2", e.top - bRect.top + e.height/2);
-                line.setAttribute("stroke", link.type === 'ladder' ? "var(--ladder)" : "var(--snake)");
-                line.setAttribute("stroke-width", "8");
-                line.setAttribute("stroke-linecap", "round");
-                line.setAttribute("opacity", "0.6");
-                if(link.type === 'ladder') line.setAttribute("stroke-dasharray", "10,5");
-                svg.appendChild(line);
-            });
-        }
 
         function movePiece() {
             const cell = document.getElementById(`c-${playerPos}`);
-            const bRect = document.getElementById('board-container').getBoundingClientRect();
-            const cRect = cell.getBoundingClientRect();
+            const container = document.getElementById('game-container');
             const token = document.getElementById('player-token');
-            token.style.left = (cRect.left - bRect.left + (cRect.width/2) - 19) + 'px';
-            token.style.top = (cRect.top - bRect.top + (cRect.height/2) - 19) + 'px';
+            
+            // 獲取格子的相對位置
+            token.style.left = cell.offsetLeft + 13 + 'px';
+            token.style.top = cell.offsetTop + 13 + 'px';
         }
 
         async function play() {
-            if (isMoving) return;
-            isMoving = true;
-            document.getElementById('roll-btn').disabled = true;
             const roll = Math.floor(Math.random() * 6) + 1;
             document.getElementById('dice-result').innerText = ['🎲','⚀','⚁','⚂','⚃','⚄','⚅'][roll];
 
             for (let i = 0; i < roll; i++) {
-                if (playerPos < 35) {
+                if (playerPos < 24) {
                     playerPos++;
                     movePiece();
-                    await new Promise(r => setTimeout(r, 450));
+                    await new Promise(r => setTimeout(r, 400));
                 }
             }
 
-            // 觸發挑戰
+            // 彈出題目
             const modal = document.getElementById('modal');
             const quiz = quizBank[Math.floor(Math.random() * quizBank.length)];
             document.getElementById('q-text').innerText = quiz.q;
@@ -162,45 +142,23 @@
                 const btn = document.createElement('button');
                 btn.className = 'opt';
                 btn.innerText = o;
-                btn.onclick = async () => {
-                    if (o === quiz.a) {
-                        alert("✅ 答對了！恭喜！");
-                    } else {
-                        alert(`❌ 答錯了！正確答案是：\n${quiz.a}\n退後 1 格重新考察！`);
+                btn.onclick = () => {
+                    if (o !== quiz.a) {
+                        alert("答錯了，退後一格！");
                         playerPos = Math.max(0, playerPos - 1);
                         movePiece();
+                    } else {
+                        alert("答對了！");
                     }
                     modal.style.display = 'none';
-                    await checkLinks();
+                    if (playerPos >= 24) alert("恭喜抵達終點！");
                 };
                 opts.appendChild(btn);
             });
             modal.style.display = 'flex';
         }
 
-        async function checkLinks() {
-            const link = links.find(l => l.start === playerPos);
-            if (link) {
-                alert(link.msg);
-                playerPos = link.end;
-                movePiece();
-                await new Promise(r => setTimeout(r, 600));
-            }
-            if (playerPos >= 35) {
-                alert("🎓 恭喜抵達終點孔廟！你是台南考察達人！");
-                location.reload();
-            } else {
-                document.getElementById('status').innerText = `目前位置：${playerPos + 1}. ${document.getElementById('c-'+playerPos).innerText.split('\n')[1]}`;
-            }
-            isMoving = false;
-            document.getElementById('roll-btn').disabled = false;
-        }
-
-        window.onload = () => {
-            movePiece();
-            drawLines();
-        };
-        window.onresize = () => { drawLines(); movePiece(); };
+        window.onload = movePiece;
     </script>
 </body>
 </html>

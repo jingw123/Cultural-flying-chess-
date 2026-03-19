@@ -1,164 +1,105 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>台南校外教學：25格精華版</title>
+    <title>大學面試模擬器 - 專業版</title>
     <style>
-        :root { --red: #b71c1c; --bg: #fff8e1; }
-        body { font-family: "Microsoft JhengHei", sans-serif; background: var(--bg); display: flex; flex-direction: column; align-items: center; margin: 0; padding: 10px; }
-        
-        /* 縮小盤面，增加穩定性 */
-        #game-container {
-            position: relative; width: 320px; height: 320px;
-            background: white; border: 6px solid var(--red); border-radius: 10px;
-            display: grid; grid-template-columns: repeat(5, 1fr); grid-template-rows: repeat(5, 1fr);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        }
-
-        .cell {
-            border: 1px solid #ddd; display: flex; flex-direction: column;
-            justify-content: center; align-items: center; font-size: 11px; font-weight: bold;
-            text-align: center; color: #333; height: 62px; width: 62px; box-sizing: border-box;
-        }
-        .start { background: #ff7675 !important; color: white; }
-        .end { background: var(--red) !important; color: gold; }
-
-        /* 棋子：改用簡單的圓點背影，確保不會遮到字 */
-        #player-token {
-            width: 35px; height: 35px; position: absolute; z-index: 100;
-            font-size: 26px; display: flex; justify-content: center; align-items: center;
-            transition: all 0.4s ease; pointer-events: none;
-            background: rgba(255,255,255,0.6); border-radius: 50%;
-        }
-
-        .controls { margin-top: 20px; text-align: center; }
-        button { background: var(--red); color: white; border: none; padding: 10px 30px; font-size: 18px; border-radius: 20px; cursor: pointer; }
-        
-        #modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 1000; }
-        .quiz-box { background: white; padding: 20px; border-radius: 15px; width: 80%; border: 4px solid var(--red); text-align: center; }
-        .opt { display: block; width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ccc; border-radius: 5px; cursor: pointer; }
+        body { font-family: 'Microsoft JhengHei', sans-serif; background-color: #f0f2f5; margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        #game-container { width: 800px; background: white; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); overflow: hidden; }
+        #professor-area { background: #2c3e50; color: white; padding: 40px; text-align: center; min-height: 150px; }
+        #professor-name { font-weight: bold; color: #bdc3c7; margin-bottom: 10px; }
+        #question { font-size: 1.5rem; line-height: 1.6; }
+        #options-area { padding: 30px; display: flex; flex-direction: column; gap: 15px; }
+        .option-btn { background: #ecf0f1; border: 2px solid #bdc3c7; padding: 15px; font-size: 1.1rem; cursor: pointer; border-radius: 5px; transition: 0.3s; text-align: left; }
+        .option-btn:hover { background: #3498db; color: white; border-color: #3498db; }
+        #stats { display: flex; justify-content: space-around; background: #ecf0f1; padding: 15px; border-top: 1px solid #ddd; }
+        .grade { font-size: 1.5rem; font-weight: bold; color: #e74c3c; }
+        #feedback { text-align: center; padding: 20px; font-weight: bold; display: none; }
     </style>
 </head>
 <body>
 
-    <h2 style="color:var(--red)">🏛️ 台南文化大冒險 (25格版)</h2>
+<div id="game-container">
+    <div id="professor-area">
+        <div id="professor-name">首席面試官</div>
+        <div id="question">正在載入面試試題...</div>
+    </div>
     
-    <div style="margin-bottom:10px">
-        角色：<select id="char-select" onchange="document.getElementById('player-token').innerText = this.value">
-            <option value="🩴">🩴 藍白拖</option>
-            <option value="🏮">🏮 天燈</option>
-            <option value="🌙">🌙 聖杯</option>
-        </select>
-    </div>
+    <div id="feedback"></div>
 
-    <div id="game-container">
-        <div class="cell end" id="c-24">25<br>孔廟</div>
-        <div class="cell" id="c-23">24<br>樹屋</div>
-        <div class="cell" id="c-22">23<br>安平</div>
-        <div class="cell" id="c-21">22<br>觀夕</div>
-        <div class="cell" id="c-20">21<br>兌悅門</div>
-        
-        <div class="cell" id="c-15">16<br>南女</div>
-        <div class="cell" id="c-16">17<br>大南門</div>
-        <div class="cell" id="c-17">18<br>小西門</div>
-        <div class="cell" id="c-18">19<br>蝸牛巷</div>
-        <div class="cell" id="c-19">20<br>友愛街</div>
-        
-        <div class="cell" id="c-14">15<br>南美館</div>
-        <div class="cell" id="c-13">14<br>府中街</div>
-        <div class="cell" id="c-12">13<br>文學館</div>
-        <div class="cell" id="c-11">12<br>林百貨</div>
-        <div class="cell" id="c-10">11<br>藍晒圖</div>
-        
-        <div class="cell" id="c-5">6<br>神農街</div>
-        <div class="cell" id="c-6">7<br>水仙宮</div>
-        <div class="cell" id="c-7">8<br>國華街</div>
-        <div class="cell" id="c-8">9<br>正興街</div>
-        <div class="cell" id="c-9">10<br>保安路</div>
-        
-        <div class="cell start" id="c-0">1<br>車站</div>
-        <div class="cell" id="c-1">2<br>成大</div>
-        <div class="cell" id="c-2">3<br>赤崁樓</div>
-        <div class="cell" id="c-3">4<br>武廟</div>
-        <div class="cell" id="c-4">5<br>鴨母寮</div>
-
-        <div id="player-token">🩴</div>
-    </div>
-
-    <div class="controls">
-        <div id="dice-result" style="font-size: 40px;">🎲</div>
-        <button onclick="play()">擲骰子移動</button>
-        <p id="status" style="font-size: 13px; color: #666;">目標：走到終點孔廟！</p>
-    </div>
-
-    <div id="modal">
-        <div class="quiz-box">
-            <h3 style="color:var(--red); margin:0;">文化挑戰</h3>
-            <p id="q-text" style="font-weight:bold;"></p>
-            <div id="q-opts"></div>
+    <div id="options-area">
         </div>
+
+    <div id="stats">
+        <div>目前評價: <span id="current-grade" class="grade">-</span></div>
+        <div>剩餘時間: <span id="timer" class="grade">15</span> 秒</div>
     </div>
+</div>
 
-    <script>
-        let playerPos = 0;
-        const quizBank = [
-            { q: "台南「牛肉湯」鮮甜的秘密？", a: "溫體牛肉淋高湯", o: ["溫體牛肉淋高湯", "加入煉乳", "牛肉先炸過"] },
-            { q: "「全臺首學」是指哪裡？", a: "台南孔廟", o: ["台南孔廟", "成功大學", "林百貨"] },
-            { q: "擲筊「一平一凸」代表？", a: "聖杯 (同意)", o: ["聖杯 (同意)", "笑杯", "怒杯"] },
-            { q: "台南文學館在日治時期原本是？", a: "台南州廳", o: ["台南州廳", "火車站", "電影院"] }
-        ];
+<script>
+    const questions = [
+        { q: "請簡述申請本系的動機。", a: "我長期關注該領域趨勢，並希望結合貴校資源。", b: "因為這間學校名氣大，而且離我家很近。", f: "我媽覺得這個科系以後比較好找工作。", correct: 'a' },
+        { q: "面對壓力時，你如何處理？", a: "我會制定優先順序，並透過運動保持心理韌性。", b: "我就努力讀書，盡量不要想太多。", f: "我會直接去睡覺或是玩遊戲來逃避。", correct: 'a' },
+        { q: "你對本系課程有什麼了解？", a: "我研究過貴系的課程大綱，對實務實習特別感興趣。", b: "我大概知道要學什麼，就是一些專業課。", f: "內容應該跟高中學的差不多吧？", correct: 'a' }
+    ];
 
-        function movePiece() {
-            const cell = document.getElementById(`c-${playerPos}`);
-            const container = document.getElementById('game-container');
-            const token = document.getElementById('player-token');
-            
-            // 獲取格子的相對位置
-            token.style.left = cell.offsetLeft + 13 + 'px';
-            token.style.top = cell.offsetTop + 13 + 'px';
-        }
+    let currentIdx = 0;
+    let timer;
+    let timeLeft = 15;
 
-        async function play() {
-            const roll = Math.floor(Math.random() * 6) + 1;
-            document.getElementById('dice-result').innerText = ['🎲','⚀','⚁','⚂','⚃','⚄','⚅'][roll];
-
-            for (let i = 0; i < roll; i++) {
-                if (playerPos < 24) {
-                    playerPos++;
-                    movePiece();
-                    await new Promise(r => setTimeout(r, 400));
-                }
+    function startTimer() {
+        clearInterval(timer);
+        timeLeft = 15;
+        document.getElementById('timer').innerText = timeLeft;
+        timer = setInterval(() => {
+            timeLeft--;
+            document.getElementById('timer').innerText = timeLeft;
+            if (timeLeft <= 0) {
+                endQuestion('F', "時間到，你太猶豫了。");
             }
+        }, 1000);
+    }
 
-            // 彈出題目
-            const modal = document.getElementById('modal');
-            const quiz = quizBank[Math.floor(Math.random() * quizBank.length)];
-            document.getElementById('q-text').innerText = quiz.q;
-            const opts = document.getElementById('q-opts');
-            opts.innerHTML = '';
-            
-            quiz.o.sort(() => Math.random() - 0.5).forEach(o => {
-                const btn = document.createElement('button');
-                btn.className = 'opt';
-                btn.innerText = o;
-                btn.onclick = () => {
-                    if (o !== quiz.a) {
-                        alert("答錯了，退後一格！");
-                        playerPos = Math.max(0, playerPos - 1);
-                        movePiece();
-                    } else {
-                        alert("答對了！");
-                    }
-                    modal.style.display = 'none';
-                    if (playerPos >= 24) alert("恭喜抵達終點！");
-                };
-                opts.appendChild(btn);
-            });
-            modal.style.display = 'flex';
+    function loadQuestion() {
+        if (currentIdx >= questions.length) {
+            document.getElementById('game-container').innerHTML = "<div style='padding:50px; text-align:center;'><h2>面試結束</h2><p>教授正在討論你的錄取結果...</p><button onclick='location.reload()'>重新面試</button></div>";
+            return;
         }
+        const qData = questions[currentIdx];
+        document.getElementById('question').innerText = qData.q;
+        const optionsArea = document.getElementById('options-area');
+        optionsArea.innerHTML = "";
+        
+        const choices = [
+            { text: qData.a, grade: 'A+' },
+            { text: qData.b, grade: 'B' },
+            { text: qData.f, grade: 'F' }
+        ].sort(() => Math.random() - 0.5);
 
-        window.onload = movePiece;
-    </script>
+        choices.forEach(c => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerText = c.text;
+            btn.onclick = () => endQuestion(c.grade);
+            optionsArea.appendChild(btn);
+        });
+        startTimer();
+    }
+
+    function endQuestion(grade, msg) {
+        clearInterval(timer);
+        let finalGrade = grade;
+        if (grade === 'A+' && timeLeft < 8) finalGrade = 'A'; // 回答太慢降級
+        
+        document.getElementById('current-grade').innerText = finalGrade;
+        alert("本題評價: " + finalGrade + (msg ? "\n" + msg : ""));
+        currentIdx++;
+        loadQuestion();
+    }
+
+    loadQuestion();
+</script>
+
 </body>
 </html>

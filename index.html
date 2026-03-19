@@ -3,20 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>台南校外教學：文化挑戰</title>
+    <title>台南文化大冒險</title>
     <style>
-        :root { --bg: #faf3e0; --tainan-red: #b71c1c; --ladder: #f1c40f; --snake: #e74c3c; }
+        :root { --bg: #faf3e0; --red: #b71c1c; }
         body { font-family: "Microsoft JhengHei", sans-serif; background: var(--bg); display: flex; flex-direction: column; align-items: center; margin: 0; padding: 10px; }
-        h2 { color: var(--tainan-red); margin: 10px 0; }
         
-        /* 遊戲外框：固定比例避免白屏 */
+        /* 遊戲盤主容器 */
         #board-container {
             position: relative; width: 350px; height: 500px;
-            background: #fff; border: 8px solid var(--tainan-red); border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2); overflow: hidden;
+            background: #fff; border: 8px solid var(--red); border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
         }
 
-        /* 36 格網格佈局 */
+        /* 36格寫死佈局 */
         #game-board {
             display: grid; grid-template-columns: repeat(6, 1fr); grid-template-rows: repeat(6, 1fr);
             width: 100%; height: 100%; gap: 2px; padding: 5px; box-sizing: border-box;
@@ -27,33 +26,31 @@
             justify-content: center; align-items: center; font-size: 10px; font-weight: bold;
             text-align: center; color: #444; position: relative;
         }
-        .cell.start { background: #ff7675; color: white; }
-        .cell.end { background: var(--tainan-red); color: gold; border: 2px double gold; }
+        .start { background: #ff7675 !important; color: white; }
+        .end { background: var(--red) !important; color: gold; border: 2px double gold; }
 
-        #svg-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; }
-
-        /* 棋子樣式 */
+        /* 棋子 */
         #player-token {
             width: 35px; height: 35px; position: absolute; z-index: 100; font-size: 28px;
             display: flex; justify-content: center; align-items: center; pointer-events: none;
-            transition: all 0.4s ease;
+            transition: all 0.4s ease; left: 15px; top: 430px; /* 初始位置在第1格 */
         }
 
-        /* 控制區與彈窗 */
-        .controls { margin-top: 15px; text-align: center; background: white; padding: 10px; border-radius: 20px; width: 320px; }
-        button#roll-btn { background: var(--tainan-red); color: white; border: none; padding: 10px 40px; font-size: 18px; border-radius: 50px; cursor: pointer; }
+        .controls { margin-top: 15px; text-align: center; background: white; padding: 15px; border-radius: 20px; width: 300px; }
+        button#roll-btn { background: var(--red); color: white; border: none; padding: 10px 40px; font-size: 18px; border-radius: 50px; cursor: pointer; }
+        
+        /* 彈窗 */
         #modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 1000; }
-        .quiz-box { background: white; padding: 20px; border-radius: 20px; width: 80%; border: 5px solid var(--tainan-red); }
-        .opt { display: block; width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; text-align: left; }
+        .quiz-box { background: white; padding: 20px; border-radius: 20px; width: 80%; border: 5px solid var(--red); text-align: center; }
+        .opt { display: block; width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <h2>🏛️ 台南校外教學：文化挑戰</h2>
+    <h2 style="color:var(--red)">🏛️ 台南校外教學 36格</h2>
     
-    <div style="margin-bottom: 10px;">
-        選擇棋子：
-        <select id="char-select" onchange="document.getElementById('player-token').innerText = this.value">
+    <div style="margin-bottom:10px">
+        角色：<select id="char-select" onchange="document.getElementById('player-token').innerText = this.value">
             <option value="🩴">🩴 藍白拖鞋</option>
             <option value="🏮">🏮 文創天燈</option>
             <option value="🌙">🌙 聖杯擲筊</option>
@@ -61,58 +58,9 @@
     </div>
 
     <div id="board-container">
-        <svg id="svg-layer"></svg>
-        <div id="game-board"></div>
-        <div id="player-token">🩴</div>
-    </div>
-
-    <div class="controls">
-        <div id="dice-result" style="font-size: 40px;">🎲</div>
-        <button id="roll-btn" onclick="play()">擲骰子移動</button>
-        <p id="status" style="font-size: 12px; color: #666;">目標：從車站走到孔廟！</p>
-    </div>
-
-    <div id="modal">
-        <div class="quiz-box">
-            <h3 id="q-title" style="color:var(--tainan-red); margin-top:0;">文化挑戰題目</h3>
-            <p id="q-text" style="font-weight:bold;"></p>
-            <div id="q-opts"></div>
-        </div>
-    </div>
-
-    <script>
-        const mapData = [
-            "台南車站","成功大學","赤崁樓","祀典武廟","鴨母寮","神農街",
-            "水仙宮","正興街","國華街","保安路","藍晒圖","司法博物館",
-            "林百貨","鄭成功祠","開山路","府中街","南美館1館","南美館2館",
-            "台南文學館","孔廟園區","五妃廟","延平郡王祠","台南高商","家齊高中",
-            "台南女中","大南門","小西門","友愛街","蝸牛巷","兌悅門",
-            "安平古堡","德記洋行","安平樹屋","夕遊出張所","觀夕平台","孔廟(終點)"
-        ];
-
-        const quizBank = [
-            { q: "在台南點「牛肉湯」時，鮮甜湯頭的主要秘密是？", a: "溫體牛肉淋上滾燙高湯即時享用", o: ["溫體牛肉淋上滾燙高湯即時享用", "先將牛肉油炸鎖住肉汁", "加入大量台南產的鮮乳"] },
-            { q: "「全臺首學」石碑位於哪裡？", a: "台南孔廟", o: ["台南孔廟", "成功大學", "赤崁樓"] },
-            { q: "台南「林百貨」內部的特色設施是什麼？", a: "指針式復古電梯", o: ["指針式復古電梯", "透明空中走廊", "室內旋轉木馬"] },
-            { q: "在廟宇擲筊若出現「一平一凸」代表什麼？", a: "聖杯：代表神明同意", o: ["聖杯：代表神明同意", "笑杯：代表神明正在考慮", "陰杯：代表神明不同意"] }
-        ];
-
-        const links = [
-            { start: 2, end: 12, msg: "🛵 騎機車：直達林百貨！", type: "ladder" },
-            { start: 22, end: 5, msg: "🚧 修路施工：滑回神農街！", type: "snake" }
-        ];
-
-        let playerPos = 0;
-        let isMoving = false;
-
-        // 確保先畫出 36 個格子
-        function createBoard() {
-            const board = document.getElementById('game-board');
-            board.innerHTML = '';
-            for (let i = 0; i < 36; i++) {
-                const cell = document.createElement('div');
-                cell.className = `cell ${i===0?'start':''} ${i===35?'end':''}`;
-                
-                // S型排列邏輯
-                let row = Math.floor(i / 6);
-                let col = (row % 2 === 0) ? (i % 6) : (5 - (i %
+        <div id="game-board">
+            <div class="cell" id="c-30">31<br>安平</div><div class="cell" id="c-31">32<br>德記</div><div class="cell" id="c-32">33<br>樹屋</div><div class="cell" id="c-33">34<br>出張所</div><div class="cell" id="c-34">35<br>觀夕</div><div class="cell end" id="c-35">36<br>孔廟</div>
+            <div class="cell" id="c-29">30<br>兌悅門</div><div class="cell" id="c-28">29<br>蝸牛巷</div><div class="cell" id="c-27">28<br>友愛街</div><div class="cell" id="c-26">27<br>小西門</div><div class="cell" id="c-25">26<br>大南門</div><div class="cell" id="c-24">25<br>南女</div>
+            <div class="cell" id="c-18">19<br>文學館</div><div class="cell" id="c-19">20<br>孔廟區</div><div class="cell" id="c-20">21<br>五妃廟</div><div class="cell" id="c-21">22<br>郡王祠</div><div class="cell" id="c-22">23<br>南高商</div><div class="cell" id="c-23">24<br>家齊</div>
+            <div class="cell" id="c-17">18<br>南美2</div><div class="cell" id="c-16">17<br>南美1</div><div class="cell" id="c-15">16<br>府中街</div><div class="cell" id="c-14">15<br>開山路</div><div class="cell" id="c-13">14<br>成功祠</div><div class="cell" id="c-12">13<br>林百貨</div>
+            <div class="cell" id="c-6">7<br>水仙宮</div><div class="cell" id="c-7">8<br>正興街</div><div class="cell" id="c-8">9<br

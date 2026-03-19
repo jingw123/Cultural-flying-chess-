@@ -3,214 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>台灣大城市拼音冒險</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <title>台南校外教學：36格文化大冒險</title>
     <style>
         :root {
-            --bg: #fdf6e3;
-            --land: #e8f5e9;
+            --bg: #faf3e0;
+            --land: #f5f5f5;
+            --primary: #8d6e63;
             --ladder: #f1c40f;
             --snake: #e74c3c;
+            --tainan-red: #b71c1c;
         }
-        body { font-family: "Microsoft JhengHei", cursive, sans-serif; background: var(--bg); display: flex; flex-direction: column; align-items: center; padding: 10px; }
+        body { font-family: "Microsoft JhengHei", cursive, sans-serif; background: var(--bg); display: flex; flex-direction: column; align-items: center; padding: 10px; margin: 0; }
         
         #game-board {
-            position: relative; width: 340px; height: 500px;
-            background: var(--land); border: 6px solid #8eb69b; border-radius: 20px;
-            display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(5, 1fr);
-            gap: 10px; padding: 15px; box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            position: relative; width: 360px; height: 550px;
+            background: #fff; border: 10px solid var(--tainan-red); border-radius: 15px;
+            display: grid; grid-template-columns: repeat(6, 1fr); grid-template-rows: repeat(6, 1fr);
+            gap: 4px; padding: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.2);
         }
 
         .cell {
-            background: rgba(255,255,255,0.9); border: 2px solid #c0c0c0; border-radius: 12px;
+            background: white; border: 1px solid #ddd; border-radius: 4px;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
-            font-size: 14px; font-weight: bold; z-index: 10; text-align: center;
+            font-size: 10px; font-weight: bold; z-index: 10; text-align: center; color: #333;
         }
         .cell.start { background: #ff7675; color: white; }
-        .cell.end { background: #55efc4; border: 3px solid #00b894; }
+        .cell.end { background: var(--tainan-red); color: gold; border: 3px double gold; font-size: 14px; }
+        .cell.special { background: #fff9c4; }
 
         #svg-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; }
 
         .piece {
-            width: 50px; height: 50px; position: absolute;
+            width: 45px; height: 45px; position: absolute;
             transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            z-index: 100; font-size: 38px; display: flex; justify-content: center; align-items: center;
+            z-index: 100; font-size: 32px; display: flex; justify-content: center; align-items: center;
+            filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.2));
         }
 
         #modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 1000;
         }
-        .quiz-box { background: white; padding: 25px; border-radius: 20px; width: 85%; max-width: 300px; text-align: center; border: 5px solid #27ae60; }
-        .opt { display: block; width: 100%; padding: 12px; margin: 10px 0; border: 2px solid #ddd; border-radius: 10px; font-size: 16px; cursor: pointer; transition: 0.2s; }
-        .opt:hover { background: #f1f8e9; border-color: #27ae60; }
-
-        .controls { margin-top: 20px; text-align: center; }
-        button#roll-btn { background: #27ae60; color: white; border: none; padding: 12px 60px; font-size: 20px; border-radius: 50px; cursor: pointer; box-shadow: 0 4px 0 #1e8449; }
-        button#roll-btn:active { transform: translateY(2px); box-shadow: none; }
-    </style>
-</head>
-<body>
-
-    <h2 style="color: #2c3e50; margin-bottom: 5px;">📍 台灣重要城市拼音挑戰</h2>
-    <p id="player-msg" style="color: #e67e22; font-weight: bold;">準備出發囉！</p>
-    
-    <div id="game-board">
-        <svg id="svg-layer">
-            <line id="line1" stroke="var(--ladder)" stroke-width="8" stroke-linecap="round" stroke-dasharray="12,8" />
-            <line id="line2" stroke="var(--snake)" stroke-width="8" stroke-linecap="round" opacity="0.7" />
-        </svg>
-    </div>
-
-    <div class="controls">
-        <div id="dice-result" style="font-size: 50px; margin-bottom: 10px;">🎲</div>
-        <button id="roll-btn" onclick="play()">擲骰子</button>
-        <div id="qrcode" style="margin-top: 15px; display: flex; justify-content: center;"></div>
-    </div>
-
-    <div id="modal">
-        <div class="quiz-box">
-            <h3 id="q-title" style="color: #27ae60;">知識大挑戰</h3>
-            <p id="q-text" style="font-size: 18px; line-height: 1.5;"></p>
-            <div id="q-opts"></div>
-        </div>
-    </div>
-
-    <script>
-        // 精簡後的 15 格重要大城市路徑
-        const mapData = [
-            "屏東 (Píngdōng)", "高雄 (Gāoxióng)", "台南 (Táinán)", "嘉義 (Jiāyì)",
-            "雲林 (Yúnlín)", "彰化 (Zhānghuà)", "台中 (Táizhōng)", "苗栗 (Miáolì)",
-            "新竹 (Xīnzhú)", "桃園 (Táoyuán)", "台北 (Táiběi)", "基隆 (Jīlóng)",
-            "宜蘭 (Yílán)", "花蓮 (Huālián)", "玉山 (Yùshān)"
-        ];
-
-        // 多元化題庫
-        const quizBank = [
-            { t: "拼音辨識", q: "「珍珠奶茶」正確的拼音是？", a: "Zhēnzhū Nǎichá", o: ["Zhēnzhū Nǎichá", "Zēnzū Lǎicá", "Zhēnzhū Nǎicá"] },
-            { t: "文化知識", q: "「太陽餅」是哪一個城市的特產？", a: "台中 (Táizhōng)", o: ["台中 (Táizhōng)", "台北 (Táiběi)", "高雄 (Gāoxióng)"] },
-            { t: "拼音辨識", q: "「小籠包」正確的拼音是？", a: "Xiǎolóngbāo", o: ["Xiǎolóngbāo", "Xiǎolóngpāo", "Siǎolóngbāo"] },
-            { t: "文化知識", q: "台灣最高的山是哪一座？", a: "玉山 (Yùshān)", o: ["玉山 (Yùshān)", "陽明山", "阿里山"] },
-            { t: "聲調挑戰", q: "「高雄」的「高 (Gāo)」是第幾聲？", a: "第一聲", o: ["第一聲", "第二聲", "第三聲"] },
-            { t: "文化知識", q: "台南最有名的古蹟是？", a: "赤崁樓", o: ["赤崁樓", "台北101", "鵝鑾鼻燈塔"] }
-        ];
-
-        const links = [
-            { start: 1, end: 10, msg: "🚄 搭乘高鐵！從高雄直達台北" }, // 梯子
-            { start: 12, end: 4, msg: "🌧️ 宜蘭大雨，滑回雲林" } // 滑梯
-        ];
-
-        let playerPos = 0;
-        let isMoving = false;
-
-        function init() {
-            const board = document.getElementById('game-board');
-            mapData.forEach((name, i) => {
-                const cell = document.createElement('div');
-                cell.className = `cell ${i===0?'start':''} ${i===14?'end':''}`;
-                let row = Math.floor(i / 3);
-                let col = (row % 2 === 0) ? (i % 3) : (2 - (i % 3));
-                cell.style.gridRow = 5 - row;
-                cell.style.gridColumn = col + 1;
-                cell.id = `c-${i}`;
-                cell.innerHTML = `<span style="font-size:11px">${i+1}</span><br>${name.split(' ')[0]}`;
-                board.appendChild(cell);
-            });
-
-            const piece = document.createElement('div');
-            piece.className = 'piece';
-            piece.id = 'player-token';
-            piece.innerText = "🧋";
-            document.body.appendChild(piece);
-            
-            setTimeout(() => { drawLinks(); movePiece(); }, 500);
-            new QRCode(document.getElementById("qrcode"), { text: window.location.href, width: 60, height: 60 });
-        }
-
-        function drawLinks() {
-            links.forEach((link, idx) => {
-                const startEl = document.getElementById(`c-${link.start}`).getBoundingClientRect();
-                const endEl = document.getElementById(`c-${link.end}`).getBoundingClientRect();
-                const boardEl = document.getElementById('game-board').getBoundingClientRect();
-                const line = document.getElementById(`line${idx+1}`);
-                line.setAttribute("x1", startEl.left - boardEl.left + 50);
-                line.setAttribute("y1", startEl.top - boardEl.top + 50);
-                line.setAttribute("x2", endEl.left - boardEl.left + 50);
-                line.setAttribute("y2", endEl.top - boardEl.top + 50);
-            });
-        }
-
-        function movePiece() {
-            const cell = document.getElementById(`c-${playerPos}`);
-            const rect = cell.getBoundingClientRect();
-            const piece = document.getElementById('player-token');
-            piece.style.left = `${rect.left + 5}px`;
-            piece.style.top = `${rect.top + 5}px`;
-        }
-
-        async function play() {
-            if (isMoving) return;
-            isMoving = true;
-            const roll = Math.floor(Math.random() * 6) + 1;
-            document.getElementById('dice-result').innerText = ['🎲','⚀','⚁','⚂','⚃','⚄','⚅'][roll];
-
-            for (let i = 0; i < roll; i++) {
-                if (playerPos < 14) {
-                    playerPos++;
-                    movePiece();
-                    await new Promise(r => setTimeout(r, 400));
-                }
-            }
-
-            await askQuiz();
-
-            const link = links.find(l => l.start === playerPos);
-            if (link) {
-                alert(link.msg);
-                playerPos = link.end;
-                movePiece();
-                await new Promise(r => setTimeout(r, 600));
-            }
-
-            if (playerPos >= 14) {
-                alert("🏆 恭喜！你完成了台灣大城市挑戰！");
-                location.reload();
-            }
-            isMoving = false;
-        }
-
-        function askQuiz() {
-            return new Promise(resolve => {
-                const modal = document.getElementById('modal');
-                const quiz = quizBank[Math.floor(Math.random() * quizBank.length)];
-                document.getElementById('q-title').innerText = `[${quiz.t}] 抵達 ${mapData[playerPos].split(' ')[0]}`;
-                document.getElementById('q-text').innerText = quiz.q;
-                const opts = document.getElementById('q-opts');
-                opts.innerHTML = '';
-                
-                quiz.o.sort(() => Math.random() - 0.5).forEach(c => {
-                    const btn = document.createElement('button');
-                    btn.className = 'opt';
-                    btn.innerText = c;
-                    btn.onclick = () => {
-                        if (c === quiz.a) {
-                            alert("✅ 答對了！老師可以請同學朗讀一次。");
-                        } else {
-                            alert(`❌ 答錯了！正確是 ${quiz.a}，退後 1 格。`);
-                            playerPos = Math.max(0, playerPos - 1);
-                            movePiece();
-                        }
-                        modal.style.display = 'none';
-                        resolve();
-                    };
-                    opts.appendChild(btn);
-                });
-                modal.style.display = 'flex';
-            });
-        }
-
-        window.onload = init;
-        window.onresize = () => { drawLinks(); movePiece(); };
-    </script>
-</body>
-</html>
+        .quiz-box { background: white; padding: 25px; border-radius: 20px; width: 85%; max-width: 340px; text-align: center; border: 5px solid var(--tainan-red); }
+        .opt { display: block; width: 100%; padding: 12px; margin: 8px 0; border: 2px solid #ddd; border-radius: 10px; font-size: 16px; cursor: pointer; text-align: left; }
+        .opt:hover { background: #fff3f3; border-color: var

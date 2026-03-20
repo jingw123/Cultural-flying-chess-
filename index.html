@@ -3,234 +3,229 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>大學面試口語挑戰賽</title>
+    <title>大學面試特訓 - 大字清晰版</title>
     <style>
-        :root { --深藍: #1a237e; --金: #ffd700; --白: #ffffff; --背景: #0d1117; }
+        :root { --深藍: #001f3f; --金: #ffcc00; --白: #ffffff; --背景: #000000; --紅: #ff4136; --綠: #2ecc40; }
+        
+        /* 針對長輩優化的字體大小與對比 */
         body { 
             background: var(--背景); color: var(--白); 
-            font-family: "Microsoft JhengHei", sans-serif; 
+            font-family: "Microsoft JhengHei", "微軟正黑體", sans-serif; 
             display: flex; flex-direction: column; align-items: center; 
-            padding: 20px; margin: 0;
-        }
-        #面試室 { 
-            width: 100%; max-width: 550px; background: var(--深藍); 
-            border-radius: 12px; overflow: hidden; position: relative; 
-            box-shadow: 0 15px 35px rgba(0,0,0,0.7);
-        }
-        #計時條外框 { width: 100%; height: 10px; background: #222; }
-        #計時條 { width: 100%; height: 100%; background: #ff4757; transition: width 0.1s linear; }
-        
-        #教授區 { 
-            height: 240px; display: flex; flex-direction: column; align-items: center; 
-            justify-content: center; background: #283593; padding: 10px;
-        }
-        #教授頭像 { font-size: 70px; margin-bottom: 5px; }
-        #對話框 { 
-            background: white; color: #111; padding: 15px; 
-            width: 85%; border-radius: 10px; font-weight: bold; line-height: 1.5;
-            min-height: 50px; font-size: 16px;
+            padding: 10px; margin: 0; min-height: 100vh;
+            font-size: 24px; /* 基礎字體加大 */
         }
 
-        #選項區 { padding: 20px; background: #f0f0f0; display: flex; flex-direction: column; gap: 10px; }
-        .選項按鈕 { 
-            background: white; border: 1.5px solid #ccc; padding: 14px; 
-            border-radius: 8px; cursor: pointer; text-align: left; 
-            font-size: 15px; color: #333; transition: 0.2s;
+        #容器 { 
+            width: 95%; max-width: 700px; background: var(--深藍); 
+            border: 4px solid var(--白); border-radius: 25px; 
+            overflow: hidden; position: relative; margin-top: 10px;
         }
-        .選項按鈕:hover { border-color: var(--深藍); background: #e8eaf6; }
+
+        #計時外框 { width: 100%; height: 25px; background: #333; }
+        #計時條 { width: 100%; height: 100%; background: var(--綠); transition: width 0.1s linear; }
+
+        #面試官區 { 
+            padding: 30px 20px; display: flex; flex-direction: column; align-items: center; 
+            background: #002b55; text-align: center;
+        }
+        #角色頭像 { font-size: 100px; margin-bottom: 15px; }
+        #角色名稱 { color: var(--金); font-size: 32px; font-weight: bold; margin-bottom: 10px; border-bottom: 2px solid var(--金); }
+        #對話框 { 
+            background: white; color: #000; padding: 25px; width: 85%; 
+            border-radius: 20px; font-weight: 900; line-height: 1.5; 
+            font-size: 30px; /* 對話文字特大 */
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        }
+
+        #選項區 { padding: 30px; background: #ddd; display: flex; flex-direction: column; gap: 20px; }
+        .按鈕 { 
+            background: white; border: 4px solid #333; padding: 20px; 
+            border-radius: 15px; cursor: pointer; text-align: left; 
+            font-size: 26px; /* 選項文字加大 */
+            color: #000; font-weight: bold; transition: 0.2s;
+        }
+        .按鈕:hover { background: var(--金); border-color: #000; }
 
         #結果層 { 
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(0,0,0,0.95); display: none; 
+            background: rgba(0,0,0,0.98); display: none; 
             flex-direction: column; align-items: center; justify-content: center; z-index: 100;
         }
-        #等第 { font-size: 90px; font-weight: bold; color: var(--金); }
-        #評語 { padding: 20px; font-size: 17px; line-height: 1.4; color: #eee; text-align: center; }
-        #繼續按鈕 { 
-            background: var(--金); color: #000; border: none; padding: 10px 40px; 
-            font-size: 18px; border-radius: 5px; cursor: pointer; font-weight: bold;
+        #結果標題 { font-size: 80px; font-weight: 900; color: var(--金); margin: 0; }
+        #結果評價 { font-size: 40px; color: var(--白); margin: 20px; font-weight: bold; padding: 0 20px;}
+        
+        .大按鈕 { 
+            background: var(--金); color: #000; border: none; padding: 25px 60px; 
+            font-size: 32px; border-radius: 15px; cursor: pointer; font-weight: 900;
+            margin-top: 20px;
         }
+
+        #進度文字 { font-size: 24px; margin: 15px; color: var(--金); font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <h2 style="margin-bottom: 20px;">🎓 大學面試：錄取大挑戰</h2>
+    <h1 style="font-size: 40px; color: var(--金); margin: 10px 0;">🎓 大學面試練習</h1>
     
-    <div id="面試室">
-        <div id="計時條外框"><div id="計時條"></div></div>
-        <div id="教授區">
-            <div id="教授頭像">👨‍🏫</div>
-            <div id="對話框">你好，我是今天的面試官。準備好了嗎？</div>
+    <div id="容器">
+        <div id="計時外框"><div id="計時條"></div></div>
+        <div id="面試官區">
+            <div id="角色頭像">👨‍🏫</div>
+            <div id="角色名稱">面試系統</div>
+            <div id="對話框">你好！準備好開始面試了嗎？請點擊下方按鈕。</div>
         </div>
         <div id="選項區">
-            <button class="選項按鈕" onclick="遊戲開始()">【 點我開始面試 】</button>
+            <button class="按鈕" onclick="遊戲開始()" style="text-align:center;">【 點我開始練習 】</button>
         </div>
         
         <div id="結果層">
-            <div id="等第">A+</div>
-            <div id="評語">內容</div>
-            <button id="繼續按鈕" onclick="下一題()">繼續下一題</button>
+            <div id="結果標題">錄取</div>
+            <div id="結果評價">評價內容</div>
+            <button class="大按鈕" id="下一步按鈕" onclick="下一題()">點擊繼續</button>
         </div>
     </div>
+    <div id="進度文字">尚未開始</div>
 
     <script>
-        const 題目庫 = [
-            {
-                問: "第一題：請先簡單介紹你自己。你為什麼會想來申請我們系呢？",
-                選: [
-                    {內容: "我一直對這個領域很有興趣，也看過貴系的網頁，覺得這裡的課很適合我。", 評價: "A", 評語: "回答得很大方，看得出來有做功課！"},
-                    {內容: "因為這間學校很有名，大家都說考進這裡以後工作會比較好找。", 評價: "B", 評語: "有點太直白了，教授會希望你多聊聊對學習的熱情。"},
-                    {內容: "我其實還沒想好，只是跟著朋友一起報名看看。", 評價: "F", 評語: "這樣回答教授會覺得你完全沒準備喔。"}
-                ]
-            },
-            {
-                問: "第二題：如果你跟同學分組做報告，有人不幫忙，你會怎麼處理？",
-                選: [
-                    {內容: "我會先私下問他是不是有困難，大家再重新分工，把報告準時做完。", 評價: "A", 評語: "很有團隊精神，懂得主動解決問題！"},
-                    {內容: "我會直接去跟老師說他不認真，請老師扣他的分數。", 評價: "F", 評語: "這樣太衝動了，建議先試著跟同學溝通。"},
-                    {內容: "沒關係，我自己做完就好了，反正把分數拿到比較重要。", 評價: "B", 評語: "雖然你很負責任，但要學著跟別人溝通才行。"}
-                ]
-            },
-            {
-                問: "第三題：你覺得自己最大的優點是什麼？",
-                選: [
-                    {內容: "我覺得我很負責任，只要是我答應要做的事，我一定會想辦法完成。", 評價: "A", 評語: "這是一個很好的優點，教授很喜歡負責的學生。"},
-                    {內容: "我很聰明，學習速度比別人都快，考試對我來說一點都不難。", 評價: "B", 評語: "很有自信，但可以再謙虛一點會更好。"},
-                    {內容: "我好像沒什麼優點，就是一個普通的學生。", 評價: "F", 評語: "面試就是要展現優點，要對自己有信心一點！"}
-                ]
-            },
-            {
-                問: "第四題：進入大學後，你打算怎麼安排你的生活？",
-                選: [
-                    {內容: "我會先努力把專業課學好，有時間再去參加社團或打工，練習獨立。", 評價: "A", 評語: "聽起來很踏實，目標很清楚！"},
-                    {內容: "我想多玩一點，參加很多活動，功課只要能及格順利畢業就好。", 評價: "B", 評語: "大學生活雖然好玩，但學習還是最重要的喔。"},
-                    {內容: "我還沒想那麼遠，等進來讀了再說吧。", 評價: "F", 評語: "建議先有一個大概的計畫，教授才覺得你有心。"}
-                ]
-            },
-            {
-                問: "第五題：如果你在學習上遇到聽不懂的內容，你會怎麼辦？",
-                選: [
-                    {內容: "我會先上網找資料，還是不懂的話，會去請教老師或跟同學討論。", 評價: "A", 評語: "主動學習的態度非常好，這是大學最需要的！"},
-                    {內容: "我會放在一邊，等快要考試的時候再去補習或是死背起來。", 評價: "F", 評語: "這樣學習效果會很差，要趕快改掉喔。"},
-                    {內容: "我會去問學長姊，請他們直接告訴我答案比較快。", 評價: "B", 評語: "問別人是好事，但要先自己思考過。"}
-                ]
-            },
-            {
-                問: "第六題：你最近有看過什麼印象深刻的新聞或書嗎？聊聊看。",
-                選: [
-                    {內容: "我最近看到關於環境保護的新聞，覺得跟我們以後的生活很有關係。", 評價: "A", 評語: "很棒，有在關心社會發生的事情！"},
-                    {內容: "我最近都在看網紅的影片，覺得很好笑，可以舒緩壓力。", 評價: "B", 評語: "這也可以，但面試時可以選一些更有深度的話題。"},
-                    {內容: "我最近都在讀書，沒時間看新聞或其他的東西。", 評價: "F", 評語: "面試官會希望你多接觸外界的資訊。"}
-                ]
-            },
-            {
-                問: "第七題：如果你同時考上兩間不錯的大學，你會怎麼選？",
-                選: [
-                    {內容: "我會看哪一間的環境跟資源對我的未來更有幫助，再做決定。", 評價: "A", 評語: "分析得很冷靜，很有想法！"},
-                    {內容: "我看哪一間比較近或是哪一間的學費比較便宜就去哪間。", 評價: "B", 評語: "這也是現實考量，但可以多聊聊教學資源。"},
-                    {內容: "不知道，到時候問我爸媽，聽他們的意見就好。", 評價: "F", 評語: "你已經要讀大學了，要有自己的判斷力喔。"}
-                ]
-            },
-            {
-                問: "第八題：你覺得自己在什麼時候會感到最有壓力？怎麼解決？",
-                選: [
-                    {內容: "事情很多的時候會覺得累，我會去運動或聽音樂來放鬆，然後排好計畫。", 評價: "A", 評語: "能調節壓力又懂管理時間，非常好！"},
-                    {內容: "快要考試的時候壓力很大，我會一直吃東西或是睡覺來逃避。", 評價: "F", 評語: "逃避不是好辦法，要學著面對它。"},
-                    {內容: "我會跟朋友抱怨或是大哭一場，心情變好後再繼續努力。", 評價: "B", 評語: "這也是一種排解方式，但要注意解決問題。"}
-                ]
-            },
-            {
-                問: "第九題：你希望大學畢業後的自己變成什麼樣的人？",
-                選: [
-                    {內容: "我希望我能變成一個專業的人，可以用學到的知識去幫助別人。", 評價: "A", 評語: "這個目標非常有意義，加油！"},
-                    {內容: "我希望能找到一份薪水很高的工作，買好車好房子過生活。", 評價: "B", 評語: "很誠實，但教授更想聽聽你的職涯目標。"},
-                    {內容: "我沒想過這件事，只想先把這四年過完。", 評價: "F", 評語: "對未來沒想法會讓教授有點擔心你的動力。"}
-                ]
-            },
-            {
-                問: "最後一題：如果我們最後沒有錄取你，你會覺得很難過嗎？",
-                選: [
-                    {內容: "我會難過，但也會反思自己哪裡做得不夠好，再去挑戰其他的機會。", 評價: "A", 評語: "非常有韌性！這種心態一定會成功。"},
-                    {內容: "會啊，這是我最想讀的系，如果沒上我可能就不想讀書了。", 評價: "F", 評語: "不要太極端，人生還有很多路可以走。"},
-                    {內容: "沒關係，反正我也報名了其他學校，總會有一間會上吧。", 評價: "B", 評語: "雖然很淡定，但也要展現出對本系的重視喔。"}
-                ]
-            }
+        const 面試官庫 = [
+            { 名稱: "林教授", 頭像: "👴", 語速: 0.8, 嚴格度: 0.9, 性格: "親切" },
+            { 名稱: "張主任", 頭像: "👩‍💼", 語速: 0.85, 嚴格度: 1.2, 性格: "嚴肅" },
+            { 名稱: "王總裁", 頭像: "🤵", 語速: 0.9, 嚴格度: 1.1, 性格: "幹練" }
         ];
 
-        let 目前索引 = 0, 遊戲計時器, 開始時間, 剩餘時間 = 15;
+        const 題目庫 = [
+            { 問: "第一題：請簡單介紹一下你自己，為什麼想報考我們系呢？", 選: [
+                { t: "我對這個領域非常有熱情，也看過貴系的網頁，覺得很適合我。", s: "A", f: "答得真好！很有誠意。" },
+                { t: "因為這間學校很有名，畢業後比較好找工作。", s: "B", f: "很誠實，但建議多聊聊學習計畫。" },
+                { t: "我其實還沒想好，只是跟著朋友一起報名看看。", s: "F", f: "這樣回答，教授會覺得你沒準備喔。" }
+            ]},
+            { 問: "第二題：如果你跟同學分組做報告，有人不幫忙，你會怎麼辦？", 選: [
+                { t: "我會先私下關心他，大家重新分工，把報告準時做完。", s: "A", f: "太棒了！很有領導能力。" },
+                { t: "我會去跟老師報告他不認真，請老師扣他的分數。", s: "F", f: "哎呀，這樣太衝動了，要先溝通喔。" },
+                { t: "沒關係，我自己做完就好了，拿到分數比較重要。", s: "B", f: "你很負責任，但也要學著跟隊友配合。" }
+            ]},
+            { 問: "第三題：你覺得自己最大的優點是什麼？請舉個例子。", 選: [
+                { t: "我覺得我很負責任，只要答應的事，一定會努力完成。", s: "A", f: "非常好的特質，教授很喜歡！" },
+                { t: "我很聰明，學習速度很快，考試對我來說很簡單。", s: "B", f: "很有自信，但謙虛一點會更受歡迎喔。" },
+                { t: "我好像沒什麼優點，就是一個普通的學生。", s: "F", f: "要有信心！每個人都有閃光點的。" }
+            ]},
+            { 問: "第四題：進入大學後，你打算怎麼安排你的學習生活？", 選: [
+                { t: "我會先努力把專業課學好，有時間再參加社團練習獨立。", s: "A", f: "計畫得很周詳，聽起來很有上進心！" },
+                { t: "我想多參加活動，功課只要能及格順利畢業就好。", s: "B", f: "大學生活雖然好玩，但讀書也很重要喔。" },
+                { t: "我還沒想那麼遠，等考進來了再慢慢打算吧。", s: "F", f: "建議先有個方向，教授才覺得你有心。" }
+            ]},
+            { 問: "第五題：如果你在學習上遇到聽不懂的地方，你會怎麼辦？", 選: [
+                { t: "我會先找資料，還是不懂的話，會去請教老師或同學。", s: "A", f: "主動學習的態度非常好，這是最重要的！" },
+                { t: "我會先放在一邊，等快要考試的時候再死背起來。", s: "F", f: "這樣學習會很辛苦，要改掉這個習慣喔。" },
+                { t: "我會去請教前輩，請他們直接告訴我答案比較快。", s: "B", f: "找人幫忙很好，但要先自己動腦思考。" }
+            ]},
+            { 問: "第六題：你最近有關注什麼新聞或讀過什麼書嗎？", 選: [
+                { t: "我最近看到關於環境保護的新聞，覺得對未來很重要。", s: "A", f: "很優秀！有在關心社會大事。" },
+                { t: "我最近都在看有趣的網路短影片，可以放鬆壓力。", s: "B", f: "放鬆很好，但面試時可以選更有深度的話題。" },
+                { t: "我最近都在忙著考試讀書，沒時間看別的東西。", s: "F", f: "教授希望看到視野開闊的學生喔。" }
+            ]},
+            { 問: "第七題：如果你同時考上兩間大學，你會怎麼選擇？", 選: [
+                { t: "我會看哪一間的資源對我的未來發展更有幫助，再決定。", s: "A", f: "分析得很冷靜，非常有想法！" },
+                { t: "看哪一間比較近，或者是哪一間學費比較便宜就去哪。", s: "B", f: "這是現實考量，但也多考慮一下教學資源吧。" },
+                { t: "不知道耶，到時候看我爸媽叫我去讀哪一間就去。", s: "F", f: "你長大了，要有自己的主見，教授才會放心。" }
+            ]}
+        ];
 
-        function 朗讀(文字) {
+        let 目前索引 = 0, 目前官 = null, 總積分 = 0, 遊戲計時器, 剩餘時間 = 20;
+
+        function 朗讀(文字, 是否帶情緒 = false) {
             window.speechSynthesis.cancel();
             const 語音 = new SpeechSynthesisUtterance(文字);
-            語音.lang = 'zh-TW'; 語音.rate = 0.8;
+            語音.lang = 'zh-TW';
+            語音.rate = 目前官 ? 目前官.語速 : 0.8;
+            語音.pitch = 是否帶情緒 ? 1.2 : 1.0; // 評價時音調稍高一點
             window.speechSynthesis.speak(語音);
         }
 
         function 遊戲開始() {
-            目前索引 = 0;
+            目前官 = 面試官庫[Math.floor(Math.random() * 面試官庫.length)];
+            目前索引 = 0; 總積分 = 0;
+            document.getElementById('角色名稱').innerText = 目前官.名稱;
+            document.getElementById('角色頭像').innerText = 目前官.頭像;
             顯示題目();
         }
 
         function 顯示題目() {
             const 題目 = 題目庫[目前索引];
             document.getElementById('對話框').innerText = 題目.問;
+            document.getElementById('進度文字').innerText = `進度：第 ${目前索引 + 1} 題 / 共 7 題`;
             document.getElementById('結果層').style.display = 'none';
+            document.getElementById('下一步按鈕').innerText = "點擊繼續";
+            
             朗讀(題目.問);
 
             const 選項區 = document.getElementById('選項區');
             選項區.innerHTML = '';
-            題目.選.forEach(選項 => {
-                const 按鈕 = document.createElement('button');
-                按鈕.className = '選項按鈕';
-                按鈕.innerText = 選項.內容;
-                按鈕.onclick = () => 處理回答(選項);
-                選項區.appendChild(按鈕);
+            題目.選.forEach(x => {
+                const b = document.createElement('button');
+                b.className = '按鈕';
+                b.innerText = x.t;
+                b.onclick = () => 處理回答(x);
+                選項區.appendChild(b);
             });
             啟動計時();
         }
 
         function 啟動計時() {
-            剩餘時間 = 15; 開始時間 = Date.now();
+            剩餘時間 = 20; 
+            const 條 = document.getElementById('計時條');
             clearInterval(遊戲計時器);
             遊戲計時器 = setInterval(() => {
                 剩餘時間 -= 0.1;
-                document.getElementById('計時條').style.width = (剩餘時間 / 15 * 100) + '%';
-                if (剩餘時間 <= 0) { clearInterval(遊戲計時器); 朗讀("時間到了，請注意時間。"); 處理逾時(); }
+                條.style.width = (剩餘時間 / 20 * 100) + '%';
+                if (剩餘時間 <= 0) { clearInterval(遊戲計時器); 處理回答({s:'F', f:'時間到了，要勇敢開口說話喔！'}); }
             }, 100);
         }
 
-        function 處理回答(選中項) {
+        function 處理回答(選) {
             clearInterval(遊戲計時器);
-            const 反應時間 = (Date.now() - 開始時間) / 1000;
-            let 最終等第 = 選中項.評價;
+            let 分 = 選.s === 'A' ? 100 : (選.s === 'B' ? 60 : 0);
+            總積分 += Math.round(分 / 目前官.嚴格度);
+
+            document.getElementById('結果層').style.display = 'flex';
+            document.getElementById('結果標題').innerText = "等級：" + 選.s;
+            document.getElementById('結果標題').style.color = 選.s === 'F' ? '#ff4136' : '#ffcc00';
+            document.getElementById('結果評價').innerText = 選.f;
             
-            if (選中項.評價 === 'A' && 反應時間 < 7) 最終等第 = 'A+';
-            if (選中項.評價 === 'B') 最終等第 = 'B+';
-
-            document.getElementById('等第').innerText = 最終等第;
-            document.getElementById('等第').style.color = (最終等第.includes('F')) ? '#ff5252' : '#ffd700';
-            document.getElementById('評語').innerText = 選中項.評語;
-            document.getElementById('結果層').style.display = 'flex';
-            朗讀(`評價是 ${最終等第}。 ${選中項.評語}`);
-        }
-
-        function 處理逾時() {
-            document.getElementById('等第').innerText = 'F';
-            document.getElementById('評語').innerText = "你發呆太久了，面試官不喜歡不回答的學生。";
-            document.getElementById('結果層').style.display = 'flex';
+            朗讀("評價是" + 選.s + "。" + 選.f, true);
         }
 
         function 下一題() {
             目前索引++;
-            if (目前索引 < 題目庫.length) 顯示題目();
-            else {
-                朗讀("面試結束了，辛苦你了！");
-                document.getElementById('結果層').innerHTML = `
-                    <h2 style="color:var(--金)">面試結束</h2>
-                    <p style="padding:20px; color:white;">你已經完成了所有題目！辛苦了！</p>
-                    <button id="繼續按鈕" onclick="location.reload()">重新開始</button>
-                `;
+            if (目前索引 < 7) {
+                顯示題目();
+            } else {
+                結算最後結果();
             }
+        }
+
+        function 結算最後結果() {
+            let 錄取狀態 = "";
+            let 建議 = "";
+            
+            if (總積分 >= 580) {
+                錄取狀態 = "恭喜！您被正式錄取了！";
+                建議 = 目前官.名稱 + "說：你的表現非常出色，充滿自信與熱情。大學需要像你這樣主動且負責的學生，請繼續保持這份初心，未來一定大有可為！";
+            } else if (總積分 >= 400) {
+                錄取狀態 = "您已進入「備取名單」";
+                建議 = 目前官.名稱 + "建議：你的回答很穩重，但稍微少了一點個人的特色。如果能再多表現一些對專業的獨特見解，錄取機會會更高！";
+            } else {
+                錄取狀態 = "很遺憾，本次未錄取";
+                建議 = 目前官.名稱 + "建議：不要灰心！面試需要更多的準備與自信。建議你多練習如何具體地介紹自己的優點，並展現對未來的計畫，下次一定會更好！";
+            }
+
+            document.getElementById('結果標題').innerText = "面試結束";
+            document.getElementById('結果評價').innerHTML = `<span style="color:var(--金); font-size:45px;">${錄取狀態}</span><br><br><div style="text-align:left; font-size:26px;">${建議}</div>`;
+            document.getElementById('下一步按鈕').innerText = "重新開始練習";
+            document.getElementById('下一步按鈕').onclick = () => location.reload();
+            
+            朗讀("面試結束。結果是：" + 錄取狀態 + "。請看教授給您的建議。", true);
         }
     </script>
 </body>

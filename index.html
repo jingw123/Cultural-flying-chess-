@@ -3,58 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>大學面試：深度挑戰系統</title>
+    <title>大學面試：深度模擬系統</title>
     <style>
         :root { --深藍: #001f3f; --金: #ffcc00; --白: #ffffff; --背景: #0a0a0a; --紅: #ff4136; --綠: #2ecc40; }
-        body { 
-            background: var(--背景); color: var(--白); 
-            font-family: "Microsoft JhengHei", sans-serif; 
-            display: flex; flex-direction: column; align-items: center; 
-            padding: 5px; margin: 0; height: 100vh; overflow: hidden;
-        }
-        #容器 { 
-            width: 98%; max-width: 600px; background: var(--深藍); 
-            border: 3px solid var(--白); border-radius: 20px; 
-            overflow: hidden; position: relative; display: flex; flex-direction: column;
-        }
-        #計時條 { width: 100%; height: 100%; background: var(--綠); transition: width 0.1s linear; }
-        #計時外框 { width: 100%; height: 12px; background: #333; }
-        #面試官區 { padding: 15px; display: flex; flex-direction: column; align-items: center; background: #002b55; }
-        #角色頭像 { font-size: 70px; margin: 0; transition: transform 0.2s; }
-        #角色名稱 { color: var(--金); font-size: 24px; font-weight: bold; margin-bottom: 5px; }
-        #對話框 { 
-            background: white; color: #000; padding: 15px; width: 90%; 
-            border-radius: 12px; font-weight: bold; font-size: 24px; line-height: 1.4; min-height: 60px;
-        }
-        #選項區 { padding: 15px; background: #eee; display: flex; flex-direction: column; gap: 10px; min-height: 200px; }
-        .按鈕 { 
-            background: white; border: 3px solid #444; padding: 12px; 
-            border-radius: 12px; cursor: pointer; text-align: left; 
-            font-size: 22px; color: #000; font-weight: bold;
-        }
+        body { background: var(--背景); color: var(--白); font-family: "Microsoft JhengHei", sans-serif; display: flex; flex-direction: column; align-items: center; padding: 5px; margin: 0; height: 100vh; overflow: hidden; }
+        #容器 { width: 98%; max-width: 650px; background: var(--深藍); border: 3px solid var(--白); border-radius: 20px; overflow: hidden; position: relative; display: flex; flex-direction: column; }
+        #計時條 { width: 100%; height: 12px; background: var(--綠); transition: width 0.1s linear; }
+        #面試官區 { padding: 12px; display: flex; flex-direction: column; align-items: center; background: #002b55; }
+        #角色頭像 { font-size: 60px; margin: 0; }
+        #角色名稱 { color: var(--金); font-size: 22px; font-weight: bold; }
+        #對話框 { background: white; color: #000; padding: 15px; width: 90%; border-radius: 12px; font-weight: bold; font-size: 22px; line-height: 1.4; min-height: 50px; }
+        #選項區 { padding: 15px; background: #eee; display: flex; flex-direction: column; gap: 10px; min-height: 250px; overflow-y: auto; }
+        .按鈕 { background: white; border: 3px solid #444; padding: 12px; border-radius: 12px; cursor: pointer; text-align: left; font-size: 20px; color: #000; font-weight: bold; }
         .按鈕:hover { background: var(--金); }
-        #結果層 { 
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(0,0,0,0.96); display: none; 
-            flex-direction: column; align-items: center; justify-content: center; z-index: 100; padding: 20px;
-        }
-        #結果標題 { font-size: 50px; font-weight: 900; color: var(--金); margin: 10px; }
-        #結果評價 { font-size: 26px; color: var(--白); padding: 10px; text-align: left; width: 90%; line-height: 1.5; }
-        .大按鈕 { background: var(--金); color: #000; border: none; padding: 15px 40px; font-size: 26px; border-radius: 10px; cursor: pointer; font-weight: 900; margin-top: 10px; }
-        #進度 { font-size: 18px; color: var(--金); margin: 5px; font-weight: bold; }
+        .提示框 { background: #fff9db; border-left: 5px solid #fab005; padding: 10px; font-size: 18px; color: #666; margin-bottom: 10px; line-height: 1.5; }
+        #結果層 { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.96); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 100; padding: 20px; text-align: center; }
+        #結果標題 { font-size: 50px; font-weight: 900; color: var(--金); }
+        #結果評價 { font-size: 24px; color: var(--白); padding: 10px; text-align: left; width: 90%; line-height: 1.4; }
+        .大按鈕 { background: var(--金); color: #000; border: none; padding: 15px 40px; font-size: 24px; border-radius: 10px; cursor: pointer; font-weight: 900; }
+        #進度 { font-size: 16px; color: var(--金); margin: 5px; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <div id="容器">
-        <div id="計時外框"><div id="計時條"></div></div>
+        <div id="計時條" style="width:0%"></div>
         <div id="面試官區">
             <div id="角色頭像">👋</div>
-            <div id="角色名稱">準備面試</div>
-            <div id="對話框">歡迎來到面試會場。</div>
+            <div id="角色名稱">面試準備室</div>
+            <div id="對話框">請先深呼吸，點擊下方按鈕安排面試官。</div>
         </div>
         <div id="選項區">
-            <button class="按鈕" onclick="考官登場()" style="text-align:center;">【 點擊安排考官 】</button>
+            <button class="按鈕" onclick="考官登場()" style="text-align:center;">【 進入面試會場 】</button>
         </div>
         <div id="結果層">
             <div id="結果標題">評價</div>
@@ -62,93 +42,115 @@
             <button class="大按鈕" id="下一步按鈕" onclick="下一動作()">點擊繼續</button>
         </div>
     </div>
-    <div id="進度">面試尚未開始</div>
+    <div id="進度">Session: Initializing</div>
 
     <script>
         const 面試官庫 = [
-            { 名稱: "林教授 (資深教授)", 頭像: "👴", 語速: 0.7, pitch: 0.8, gender: 1, intro: "考生你好...我是林教授。老夫在系上教書三十年了，別緊張，放鬆跟我聊聊吧。" },
-            { 名稱: "張主任 (系主任)", 頭像: "👩‍💼", 語速: 0.9, pitch: 1.0, gender: 0, intro: "你好，我是張主任。面試是神聖的，我希望聽到你有邏輯的回答。" },
-            { 名稱: "李組長 (招生組)", 頭像: "🤵", 語速: 1.0, pitch: 1.0, gender: 1, intro: "我是招生組李組長。我會負責評估你是否符合本校特質，請說重點。" }
+            { 名稱: "林教授 (資深學者)", 頭像: "👴", 語速: 0.65, pitch: 0.6, intro: "考生你好...我是林教授。老夫在學校教了幾十年書，喜歡聽年輕人講實話。請開始吧。" },
+            { 名稱: "張主任 (系主任)", 頭像: "👩‍💼", 語速: 0.9, pitch: 1.0, intro: "你好，我是張主任。面試講求效率與邏輯，請務必精準表達你的想法。" },
+            { 名稱: "李組長 (招生專員)", 頭像: "🤵", 語速: 1.0, pitch: 0.9, intro: "我是招生組李組長。我會觀察你的特質是否符合本校校風，請直接切入主題。" }
         ];
 
-        const 題目庫 = [
-            { 問: "第一題：為什麼我們非錄取你不可？你有什麼獨特的優點？", 選: [
-                { t: "我具備跨領域解決問題能力，且對貴系研究方向有深入了解。", s: "A", f: "你的回答展現了明確的專業配對度，這正是教授想聽到的重點。" },
-                { t: "因為我很努力，錄取我，我一定會每天最早到校讀書。", s: "B", f: "努力是基本的，但面試官更在意你的專業效率與特質。" },
-                { t: "因為我的分數很高，如果不錄取我，對貴系來說是一種損失。", s: "F", f: "這種回覆顯得過於傲慢，缺乏大學所需的謙遜學習心態。" }
-            ]},
-            { 問: "第二題：如果你發現研究數據有誤，但明天就要交報告了，你會？", 選: [
-                { t: "我會立即向老師誠實匯報，並申請延期修正，確保真實性。", s: "A", f: "誠信是學術的生命。你展現了勇於承擔責任的專業態度。" },
-                { t: "我會先把報告交上去，等之後有機會再說明數據問題。", s: "F", f: "這涉及嚴重的學術倫理問題！面試官會對你的品德產生質疑。" },
-                { t: "我會嘗試用其他數據修飾結果，讓結論看起來是合理的。", s: "B", f: "雖然顧及進度，但犧牲真實性在專業領域是非常危險的。" }
-            ]},
-            { 問: "第三題：每個人都有缺點。你目前最大的缺點是什麼？", 選: [
-                { t: "我有時過於專注細節，但我學會用清單管理時間與優先順序。", s: "A", f: "懂得正視缺點並提出具體改善方案，這是極具說服力的回答。" },
-                { t: "我最大的缺點就是太完美主義，做任何事都追求一百分。", s: "B", f: "這聽起來像包裝過的優點，會讓人覺得你不夠誠懇。" },
-                { t: "我覺得我沒什麼大缺點，目前各方面表現都還不錯。", s: "F", f: "缺乏自我反省能力是大忌，這代表你可能難以接受指導。" }
-            ]},
-            { 問: "第四題：如果你在面試現場發現競爭對手比你優秀，你會？", 選: [
-                { t: "我會虛心觀察對方的長處，同時專注展現我獨一無二的特質。", s: "A", f: "這種穩重且大氣的心態，是未來領導者必備的關鍵素質。" },
-                { t: "我會覺得自卑，然後接下來的回答就變得隨便、沒信心。", s: "F", f: "抗壓性太低。在激烈的校園競爭中，這種心態會讓你停滯不前。" },
-                { t: "我會嘗試強調對方的弱點，讓教授覺得其實我也沒那麼差。", s: "B", f: "這顯得心胸狹窄。團隊合作中，貶低他人是不可接受的行為。" }
-            ]},
-            { 問: "第五題：如果你進大學後發現課程不如預期，你會？", 選: [
-                { t: "我會主動找導師討論，並善用校內跨系資源調整學習路徑。", s: "A", f: "展現了強大的問題解決能力與對資源的整合能力。" },
-                { t: "我會覺得被騙了，然後在網路上抱怨學校的教學品質。", s: "F", f: "負面抱怨無法解決問題。教授希望錄取能積極改善現狀的學生。" },
-                { t: "我會把課修完拿到分數就好，然後私下自學我想學的東西。", s: "B", f: "雖有自學心，但忽視環境資源會讓你錯失更多成長機會。" }
-            ]},
-            { 問: "第六題：你對現在很熱門的 AI 工具應用，有什麼看法？", 選: [
-                { t: "AI 是強大的工具，但人類的批判性思考與倫理判斷不可取代。", s: "A", f: "你的回答兼具科技前瞻與人文關懷，邏輯非常清晰紮實。" },
-                { t: "AI 很快，以後作業跟研究交給它處理，我們就能省很多事。", s: "F", f: "這顯示你缺乏獨立學習的決心。這不是招生的初衷。" },
-                { t: "我覺得傳統學習比較實在，暫時不需要去學習那些工具。", s: "B", f: "在數位時代顯得有些保守，教授期待看到更有適應力的學生。" }
-            ]},
-            { 問: "第七題：最後，請給我們一個非錄取你不可的理由。", 選: [
-                { t: "因為我不怕困難，且具備極強的學習熱忱與適應力。", s: "A", f: "總結得自信有力，為這場面試畫下完美的句點！" },
-                { t: "因為我父母很支持我讀這裡，這是我們全家人的期待。", s: "B", f: "雖然感人，但教授更想錄取一個「有自主意識」的個體。" },
-                { t: "因為我覺得貴系也需要像我這種多元背景的人才。", s: "F", f: "太過空泛，沒有具體說明你所謂的「多元」能貢獻什麼。" }
+        // 階層式題庫
+        const 基礎題 = [
+            { 問: "請說說看，為什麼我們系非錄取你不可？你的獨特價值在哪？", 選: [
+                { t: "我具備跨領域解決問題的熱情，且針對貴系的研究方向做過深入功課。", s: "A", f: "展現了明確的「專業配對度」，這是教授最想聽到的核心內容。" },
+                { t: "因為我很努力且聽話，進入貴系後一定會乖乖讀書，不讓教授操心。", s: "B", f: "努力是基本的，但大學更需要有「主動性」的學生，而不僅是聽話。" },
+                { t: "因為我的學測分數剛好落在這，不錄取我對貴系來說是人才的流失。", s: "F", f: "這種回覆顯得自負且缺乏對系所的熱情，是典型的面試地雷。" }
             ]}
         ];
 
-        let 目前索引 = 0, 目前官 = null, 總得分 = 0, 遊戲計時器, 剩餘時間 = 20, 狀態 = "開始";
+        const 情境倫理題 = [
+            { 問: "如果你發現研究數據有誤差，但明天就要交報告了，你會怎麼處理？", 選: [
+                { t: "我會立即向老師誠實匯報，並申請延期修正，確保真實性。", s: "A", f: "誠信是學術的靈魂，你展現了勇於承擔責任的專業態度。" },
+                { t: "我會微調數據讓結果看起來符合邏輯，確保準時交件且結論正確。", s: "F", f: "這聽起來很負責，但本質是「數據造假」，這是學術界最不能原諒的錯誤。" },
+                { t: "我會先交上去，等老師發現問題後再解釋那是疏忽造成的錯誤。", s: "B", f: "這雖然不是惡意造假，但展現了得過且過的心態，專業度不足。" }
+            ]},
+            { 問: "如果你進大學後發現課程內容跟你想像的完全不一樣，你會？", 選: [
+                { t: "我會主動找導師溝通，並善用校內跨系資源尋找更適合的學習路徑。", s: "A", f: "主動解決問題且懂得利用資源，這正是大學需要的彈性與抗壓性。" },
+                { t: "我會為了畢業證書忍耐讀完，並在課後自學我真正感興趣的內容。", s: "B", f: "雖然有毅力，但忽視了校園環境提供的轉銜機制，效率不佳。" },
+                { t: "我會直接放棄這門專業，反正環境不適合我就沒必要浪費時間。", s: "F", f: "缺乏適應力且容易放棄，這會讓面試官懷疑你的學習穩定度。" }
+            ]}
+        ];
+
+        const 高階思維題 = [
+            { 問: "面對 AI 工具的普及，你認為我們這門學科未來最重要的核心價值是什麼？", 選: [
+                { t: "是人類的批判性思考與倫理判斷力，這在自動化時代更顯珍貴。", s: "A", f: "你的回答兼具視野與深度，邏輯非常清晰紮實。" },
+                { t: "是運算效率與大數據分析，我們要學習如何跑得比 AI 更快。", s: "B", f: "雖然掌握了技術，但缺乏「人類不可取代性」的思考深度。" },
+                { t: "我覺得沒有影響，傳統知識的積累才是最紮實、最不需要改變的。", s: "F", f: "面對變局顯得過於保守，缺乏時代敏感度與進步動力。" }
+            ]},
+            { 問: "最後，如果你今天的面試失敗了，你覺得最可能的原因是什麼？", 選: [
+                { t: "可能是我目前的實作經驗還不足，但我會根據今天的回饋持續改進。", s: "A", f: "這展現了極高的挫折容忍力與自我覺察能力，非常加分。" },
+                { t: "應該是面試時間太短，讓我沒辦法完整發揮我的所有優點。", s: "B", f: "這聽起來像是在找藉口，面試官會覺得你無法正視自己的弱點。" },
+                { t: "那是因為教授可能比較喜歡另一種類型的學生，跟我個人能力無關。", s: "F", f: "推卸責任給環境或他人，這在職場與校園都是不受歡迎的人格特質。" }
+            ]}
+        ];
+
+        let 目前索引 = 0, 目前官 = null, 總得分 = 0, 遊戲計時器, 剩餘時間 = 20, 練習題庫 = [];
 
         function 語音(文字) {
             window.speechSynthesis.cancel();
             const msg = new SpeechSynthesisUtterance(文字);
-            const voices = window.speechSynthesis.getVoices();
             msg.lang = 'zh-TW';
             msg.rate = 目前官.語速;
-            msg.pitch = 目前官.pitch; // 這裡控制聲音高低，林教授會比較沈穩
+            msg.pitch = 目前官.pitch;
             window.speechSynthesis.speak(msg);
         }
 
         function 考官登場() {
             目前官 = 面試官庫[Math.floor(Math.random() * 面試官庫.length)];
-            目前索引 = 0; 總得分 = 0;
             document.getElementById('角色名稱').innerText = 目前官.名稱;
             document.getElementById('角色頭像').innerText = 目前官.頭像;
             document.getElementById('對話框').innerText = "點擊下方按鈕聽考官介紹。";
             
             const 選項區 = document.getElementById('選項區');
-            選項區.innerHTML = `<button class="按鈕" onclick="考官自我介紹()" style="text-align:center;">【 聽取考官介紹 】</button>`;
+            選項區.innerHTML = `<button class="按鈕" onclick="考官介紹()" style="text-align:center;">【 聽取考官介紹 】</button>`;
         }
 
-        function 考官自我介紹() {
+        function 考官介紹() {
             document.getElementById('對話框').innerText = 目前官.intro;
             語音(目前官.intro);
             const 選項區 = document.getElementById('選項區');
-            選項區.innerHTML = `<button class="按鈕" onclick="顯示題目()" style="text-align:center; background: var(--金);">【 正式開始第一題 】</button>`;
+            選項區.innerHTML = `<button class="按鈕" onclick="自我介紹環節()" style="text-align:center; background:var(--金);">【 進行自我介紹 】</button>`;
+        }
+
+        function 自我介紹環節() {
+            document.getElementById('對話框').innerText = "現在，請向考官進行簡單的自我介紹。";
+            語音("現在，請向考官進行簡單的自我介紹。你可以點擊結束按鈕開始正式問答。");
+            const 選項區 = document.getElementById('選項區');
+            選項區.innerHTML = `
+                <div class="提示框">
+                    <b>💡 自我介紹黃金架構提示：</b><br>
+                    1. <b>名字與背景</b>：我是誰？來自哪裡？<br>
+                    2. <b>專長與亮點</b>：我有什麼特殊能力或得獎經歷？<br>
+                    3. <b>申請動機</b>：為什麼我想報考貴系？我的目標是什麼？
+                </div>
+                <button class="按鈕" onclick="組建題庫並開始()" style="text-align:center; background:var(--綠); color:white;">【 我已介紹完畢，開始面試問答 】</button>
+            `;
+        }
+
+        function 組建題庫並開始() {
+            // 組建 7 題：3 基礎 + 2 情境 + 2 高階
+            練習題庫 = [
+                ...基礎題, // 可以再增加更多基礎題
+                ...情境倫理題.sort(() => 0.5 - Math.random()).slice(0, 2),
+                ...高階思維題.sort(() => 0.5 - Math.random()).slice(0, 2)
+            ];
+            目前索引 = 0; 總得分 = 0;
+            顯示題目();
         }
 
         function 顯示題目() {
-            const 題目 = 題目庫[目前索引];
+            if (目前索引 >= 練習題庫.length) { 結算(); return; }
+            const 題目 = 練習題庫[目前索引];
             document.getElementById('對話框').innerText = 題目.問;
             document.getElementById('結果層').style.display = 'none';
-            document.getElementById('進度').innerText = `題目進度：${目前索引 + 1} / 7`;
+            document.getElementById('進度').innerText = `Progress: ${目前索引 + 1} / ${練習題庫.length}`;
             語音(題目.問);
 
             const 選項區 = document.getElementById('選項區');
             選項區.innerHTML = '';
-            題目.選.sort(() => Math.random() - 0.5).forEach(x => {
+            題目.選.sort(() => 0.5 - Math.random()).forEach(x => {
                 const b = document.createElement('button');
                 b.className = '按鈕';
                 b.innerText = x.t;
@@ -165,45 +167,38 @@
             遊戲計時器 = setInterval(() => {
                 剩餘時間 -= 0.1;
                 條.style.width = (剩餘時間 / 20 * 100) + '%';
-                if (剩餘時間 <= 0) { clearInterval(遊戲計時器); 處理回答({s:'F', f:'沈默太久了。考官對你的反應速度表示憂慮。'}); }
+                if (剩餘時間 <= 0) { clearInterval(遊戲計時器); 處理回答({s:'F', f:'在面試中，沈默會被視為缺乏信心與準備。'}); }
             }, 100);
         }
 
         function 處理回答(選) {
             clearInterval(遊戲計時器);
-            let 分 = 選.s === 'A' ? 100 : (選.s === 'B' ? 50 : 0);
-            總得分 += 分;
-
+            總得分 += 選.s === 'A' ? 100 : (選.s === 'B' ? 50 : 0);
             document.getElementById('結果層').style.display = 'flex';
-            document.getElementById('結果標題').innerText = "等級：" + 選.s;
+            document.getElementById('結果標題').innerText = "Evaluation: " + 選.s;
             document.getElementById('結果標題').style.color = 選.s === 'F' ? '#ff4136' : '#ffcc00';
             document.getElementById('結果評價').innerText = 選.f;
-            
-            if(選.s === 'A') document.getElementById('角色頭像').style.transform = "scale(1.2)";
-            else document.getElementById('角色頭像').style.transform = "scale(0.8)";
-
             語音(選.f);
         }
 
         function 下一動作() {
             目前索引++;
-            if (目前索引 < 7) {
-                document.getElementById('角色頭像').style.transform = "scale(1)";
-                顯示題目();
-            } else {
-                結算();
-            }
+            顯示題目();
         }
 
         function 結算() {
-            let res = 總得分 >= 550 ? "🎉 正取錄取" : (總得分 >= 350 ? "📋 備取名單" : "❌ 未錄取");
-            let advice = 總得分 >= 550 ? "你的邏輯非常清晰，是本系需要的人才。" : "你的回答還不夠具體，建議多練習專業表述。";
-            
-            document.getElementById('結果標題').innerText = res;
-            document.getElementById('結果評價').innerHTML = `面試結束！<br>你的總分：${總得分}<br><br><b>${目前官.名稱}的建議：</b><br>${advice}`;
+            let res = 總得分 >= 400 ? "錄取判定：符合標準" : "錄取判定：未達標準";
+            document.getElementById('結果標題').innerText = "面試結束";
+            document.getElementById('結果評價').innerHTML = `
+                <div style="font-size:32px; color:var(--金); text-align:center;">${res}</div><br>
+                <b>${目前官.名稱} 的總結分析：</b><br>
+                你的邏輯總分：${總得分}<br>
+                建議：${總得分 >= 450 ? '展現了極佳的思辨能力，請保持這份專業與誠實。' : '回答內容稍顯保守或落入邏輯陷阱，建議多針對專業倫理進行練習。'}
+            `;
             document.getElementById('下一步按鈕').innerText = "重新練習";
             document.getElementById('下一步按鈕').onclick = () => location.reload();
-            語音("面試結束。結果是" + res + "。教授建議你：" + advice);
+            // 此處不再播報拉炮或備取語音，僅保留結果提示
+            語音("面試結束。請查看教授給您的總結分析。");
         }
     </script>
 </body>
